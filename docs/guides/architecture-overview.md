@@ -2,7 +2,7 @@
 
 > English: [architecture-overview_en.md](./architecture-overview_en.md)
 
-한솔고 앱은 **Flutter 모바일 + Next.js 관리자 대시보드** 듀얼 클라이언트가 **Firebase** 공통 백엔드를 공유하는 구조다. 이 문서는 시스템 전체 그림, Riverpod 상태 그래프, 데이터 흐름 계층 모델을 한 곳에서 설명한다.
+한솔고등학교 앱은 **Flutter 모바일 + Next.js 관리자 대시보드** 듀얼 클라이언트가 **Firebase** 공통 백엔드를 공유하는 구조다. 이 문서는 시스템 전체 그림, Riverpod 상태 그래프, 데이터 흐름 계층 모델을 한 곳에서 설명한다.
 
 ## 시스템 다이어그램
 

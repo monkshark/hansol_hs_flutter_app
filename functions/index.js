@@ -748,11 +748,52 @@ exports.sendSchoolEmailOTP = onCall(
     try {
       const mailer = await getMailer();
       await mailer.sendMail({
-        from: `"한솔고 앱" <${GMAIL_SENDER_EMAIL.value()}>`,
+        from: `"한솔고등학교 앱" <${GMAIL_SENDER_EMAIL.value()}>`,
         to: email,
-        subject: "[한솔고 앱] 학교 이메일 인증 코드",
-        text: `인증 코드: ${code}\n\n이 코드는 30분간 유효합니다.\n본인이 요청하지 않았다면 이 메일을 무시해주세요.`,
-        html: `<p>인증 코드: <strong style="font-size:20px">${code}</strong></p><p>이 코드는 <strong>30분</strong>간 유효합니다.</p><p style="color:#888;font-size:12px">본인이 요청하지 않았다면 이 메일을 무시해주세요.</p>`,
+        subject: "한솔고등학교 이메일 인증 코드",
+        text: [
+          "한솔고등학교 앱",
+          "",
+          "학교 이메일 인증 코드",
+          "",
+          `   ${code}`,
+          "",
+          "앱에 위 6자리 코드를 입력해주세요. 30분간 유효합니다.",
+          "",
+          "본인이 요청하지 않았다면 이 메일을 무시해주세요.",
+          "",
+          "© 2026 한솔고등학교 앱",
+        ].join("\n"),
+        html: `<!DOCTYPE html>
+<html lang="ko">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f5f6f8;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;">
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background:#f5f6f8;padding:40px 16px;">
+  <tr><td align="center">
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="480" style="max-width:480px;width:100%;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.06);">
+      <tr>
+        <td style="background:#1976D2;padding:24px 32px;color:#ffffff;">
+          <div style="font-size:18px;font-weight:700;letter-spacing:-0.3px;">한솔고등학교 앱</div>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:32px;">
+          <div style="font-size:15px;color:#444444;margin-bottom:24px;">학교 이메일 인증 코드</div>
+          <div style="background:#f2f4f8;border-radius:12px;padding:24px;text-align:center;margin-bottom:24px;">
+            <div style="font-size:32px;font-weight:700;letter-spacing:12px;color:#1976D2;font-family:'SF Mono','Consolas','Courier New',monospace;">${code}</div>
+          </div>
+          <div style="font-size:14px;color:#555555;line-height:1.6;">앱에 위 6자리 코드를 입력해주세요.<br>이 코드는 <strong>30분</strong>간 유효합니다.</div>
+          <div style="font-size:12px;color:#999999;margin-top:24px;line-height:1.6;">본인이 요청하지 않았다면 이 메일을 무시해주세요.</div>
+        </td>
+      </tr>
+      <tr>
+        <td style="background:#fafbfc;padding:16px 32px;border-top:1px solid #eeeeee;font-size:11px;color:#999999;text-align:center;">© 2026 한솔고등학교 앱</td>
+      </tr>
+    </table>
+  </td></tr>
+</table>
+</body>
+</html>`,
       });
     } catch (error) {
       await logError("sendSchoolEmailOTP", error, { uid, email });
@@ -961,11 +1002,52 @@ exports.createDataExport = onCall(
         try {
           const mailer = await getMailer();
           await mailer.sendMail({
-            from: `"한솔고 앱" <${GMAIL_SENDER_EMAIL.value()}>`,
+            from: `"한솔고등학교 앱" <${GMAIL_SENDER_EMAIL.value()}>`,
             to: email,
-            subject: "[한솔고 앱] 데이터 다운로드 준비 완료",
-            text: `요청하신 데이터 ZIP이 준비되었습니다.\n\n다운로드: ${signedUrl}\n\n링크는 7일간 유효합니다.`,
-            html: `<p>요청하신 데이터 ZIP이 준비되었습니다.</p><p><a href="${signedUrl}">다운로드</a></p><p style="color:#888;font-size:12px">링크는 7일간 유효합니다.</p>`,
+            subject: "한솔고등학교 앱 데이터 다운로드 준비 완료",
+            text: [
+              "한솔고등학교 앱",
+              "",
+              "데이터 다운로드 준비 완료",
+              "",
+              "요청하신 데이터 ZIP이 준비되었습니다.",
+              "",
+              `다운로드: ${signedUrl}`,
+              "",
+              "이 링크는 7일간 유효합니다.",
+              "",
+              "© 2026 한솔고등학교 앱",
+            ].join("\n"),
+            html: `<!DOCTYPE html>
+<html lang="ko">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f5f6f8;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;">
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background:#f5f6f8;padding:40px 16px;">
+  <tr><td align="center">
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="480" style="max-width:480px;width:100%;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.06);">
+      <tr>
+        <td style="background:#1976D2;padding:24px 32px;color:#ffffff;">
+          <div style="font-size:18px;font-weight:700;letter-spacing:-0.3px;">한솔고등학교 앱</div>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:32px;">
+          <div style="font-size:15px;color:#444444;margin-bottom:16px;">데이터 다운로드 준비 완료</div>
+          <div style="font-size:14px;color:#555555;line-height:1.6;margin-bottom:24px;">요청하신 데이터 ZIP이 준비되었습니다.</div>
+          <div style="text-align:center;margin-bottom:24px;">
+            <a href="${signedUrl}" style="display:inline-block;background:#1976D2;color:#ffffff;text-decoration:none;font-size:15px;font-weight:600;padding:14px 32px;border-radius:10px;">다운로드</a>
+          </div>
+          <div style="font-size:12px;color:#999999;line-height:1.6;">이 링크는 <strong>7일</strong>간 유효합니다.</div>
+        </td>
+      </tr>
+      <tr>
+        <td style="background:#fafbfc;padding:16px 32px;border-top:1px solid #eeeeee;font-size:11px;color:#999999;text-align:center;">© 2026 한솔고등학교 앱</td>
+      </tr>
+    </table>
+  </td></tr>
+</table>
+</body>
+</html>`,
           });
         } catch (mailErr) {
           await logError("createDataExport.mail", mailErr, { uid, requestId: reqRef.id });
@@ -982,7 +1064,7 @@ exports.createDataExport = onCall(
 );
 
 function buildExportReadme(profile) {
-  return `한솔고 앱 데이터 내보내기
+  return `한솔고등학교 앱 데이터 내보내기
 ${"=".repeat(40)}
 
 이 ZIP에는 다음이 포함되어 있습니다:
