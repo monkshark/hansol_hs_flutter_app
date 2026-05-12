@@ -2,7 +2,7 @@
 
 > English: [account-and-access_en.md](./account-and-access_en.md)
 
-한솔고 앱의 인증, 역할, 승인 플로우, 정지/탈퇴 절차를 정리합니다.
+한솔고등학교 앱의 인증, 역할, 승인 플로우, 정지/탈퇴 절차를 정리합니다.
 
 ## 인증 방식 — 4종 OAuth
 

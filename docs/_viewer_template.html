@@ -108,7 +108,7 @@ html[data-theme="light"] .theme-toggle .icon-moon{display:none}
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-header">
     <div class="sidebar-header-row">
-      <h1 id="sidebarTitle">한솔고 앱 Docs</h1>
+      <h1 id="sidebarTitle">한솔고등학교 앱 Docs</h1>
       <div style="display:inline-flex;align-items:center">
         <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle theme" title="Toggle theme">
           <svg class="icon-moon" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
@@ -331,7 +331,7 @@ var FILES = [
     document.getElementById('langKo').classList.toggle('active', lang === 'ko');
     document.getElementById('langEn').classList.toggle('active', lang === 'en');
     document.getElementById('search').placeholder = (lang === 'en') ? 'Search... (Ctrl+K)' : '검색... (Ctrl+K)';
-    document.getElementById('sidebarTitle').textContent = (lang === 'en') ? 'Hansol HS App Docs' : '한솔고 앱 Docs';
+    document.getElementById('sidebarTitle').textContent = (lang === 'en') ? 'Hansol HS App Docs' : '한솔고등학교 앱 Docs';
     renderNav(lang);
 
     if(!opts.skipContentSwap){
@@ -695,7 +695,7 @@ var FILES = [
       document.getElementById('langKo').classList.toggle('active', info.lang === 'ko');
       document.getElementById('langEn').classList.toggle('active', info.lang === 'en');
       document.getElementById('search').placeholder = (info.lang === 'en') ? 'Search... (Ctrl+K)' : '검색... (Ctrl+K)';
-      document.getElementById('sidebarTitle').textContent = (info.lang === 'en') ? 'Hansol HS App Docs' : '한솔고 앱 Docs';
+      document.getElementById('sidebarTitle').textContent = (info.lang === 'en') ? 'Hansol HS App Docs' : '한솔고등학교 앱 Docs';
       renderNav(info.lang);
     }
     loadFile(parsedInit.path, parsedInit.scrollTo ? {scrollTo: parsedInit.scrollTo} : undefined);
