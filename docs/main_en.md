@@ -21,7 +21,7 @@ Future<void> main() async
 3. **Kakao SDK** initialization
 4. **Timezone** initialization (`Asia/Seoul`)
 5. Create `providerContainer = ProviderContainer()`
-6. **[SettingData](data/setting_data.md)** + **[ServiceLocator](data/service_locator.md)** initialized in parallel:
+6. **[SettingData](./reference/settings/setting_data.md)** + **[ServiceLocator](./reference/common/service_locator.md)** initialized in parallel:
    ```dart
    await Future.wait([SettingData().init(), setupServiceLocator()]);
    ```
@@ -36,7 +36,7 @@ Once the UI is up, `unawaited(_deferredInit())` runs the remaining initializatio
 2. **Subject data preload** (grades 2 and 3 in parallel)
 3. **Local meal notifications** initialization + scheduling
 4. **FCM** init + **deep link** init + **widget service** init (fire-and-forget)
-5. **[OfflineQueueManager](network/offline_queue_manager.md)** initialization — open sqflite DB + register network-restored listener
+5. **[OfflineQueueManager](./reference/common/offline_queue_manager.md)** initialization — open sqflite DB + register network-restored listener
 
 ### `_safeInit`
 
@@ -56,7 +56,7 @@ A try/catch wrapper. Ensures an individual initialization failure does not block
 | `rootNavigatorKey` | `GlobalKey<NavigatorState>` | Access Navigator from FCM deep links |
 | `notificationStream` | `StreamController<String?>` | Switch to MealScreen on notification tap |
 
-> The previous `themeNotifier`, `localeNotifier`, `appRefreshNotifier` (3 ValueNotifiers) have been unified into Riverpod providers — see the [providers doc](providers/providers.md).
+> The previous `themeNotifier`, `localeNotifier`, `appRefreshNotifier` (3 ValueNotifiers) have been unified into Riverpod providers — see the [providers doc](./reference/common/providers.md).
 
 ---
 
@@ -68,7 +68,7 @@ class HansolHighSchool extends ConsumerStatefulWidget
 
 **Description**: The app's root widget. Handles theme mode switching and MaterialApp configuration.
 
-1. Initializes [`AnimatedAppColors`](styles/app_colors.md) in `initState`
+1. Initializes [`AnimatedAppColors`](./reference/common/app_colors.md) in `initState`
 2. `_resolveIsDark`: checks platformBrightness when ThemeMode.system
 3. Watches 3 providers in `build`:
 
@@ -106,7 +106,7 @@ class MainScreen extends StatefulWidget
 3. If onboarding is incomplete → `OnboardingScreen`
 4. If not signed in → `LoginScreen`
 5. If signed in, restore schedules from Firestore: `GetIt.I<LocalDataBase>().loadFromFirestore()`
-6. [`UpdateChecker`](notification/update_checker.md)`.check()` + [`PopupNotice`](notification/popup_notice.md)`.check()`
+6. [`UpdateChecker`](./reference/common/update_checker.md)`.check()` + [`PopupNotice`](./reference/notice/popup_notice.md)`.check()`
 
 ### Navigation
 

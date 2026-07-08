@@ -33,12 +33,31 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,san
 .search-box::placeholder{color:var(--muted)}
 .nav-list{flex:1;overflow-y:auto;padding:8px 0}
 .nav-group{padding:0 8px;margin-bottom:4px}
-.nav-group-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);padding:8px 8px 4px}
+.nav-section{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text);padding:14px 16px 6px;margin-top:8px;border-top:1px solid var(--accent-dim)}
+.nav-mode-toggle{text-transform:none;letter-spacing:normal}
+.nav-mode-toggle .lang-btn{font-size:10px;padding:3px 7px}
+.nav-group-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);padding:8px 8px 4px;display:flex;align-items:center;gap:7px;user-select:none;border-radius:6px}
+.nav-group-title.module{color:var(--text);font-weight:700;font-size:12.5px;letter-spacing:.3px;cursor:pointer;transition:background .15s}
+.nav-group-title.module:hover{background:var(--accent-dim)}
+.nav-group-title.module::before{content:"";width:3px;height:13px;border-radius:2px;background:var(--accent);flex:none}
+.nav-chevron{margin-left:auto;display:inline-flex;align-items:center;color:var(--muted);opacity:.65;transition:transform .25s ease,opacity .15s;transform:rotate(90deg)}
+.nav-chevron svg{display:block}
+.nav-group-title.module:hover .nav-chevron{opacity:1}
+.nav-group.collapsed .nav-chevron{transform:rotate(0deg)}
+.nav-group-items{overflow:hidden;max-height:1600px;opacity:1;transform:translateY(0);transition:max-height .28s ease,opacity .22s ease,transform .28s ease}
+.nav-group.collapsed .nav-group-items{max-height:0;opacity:0;transform:translateY(-6px)}
 .nav-item{display:block;padding:6px 12px;font-size:13px;color:var(--muted);text-decoration:none;border-radius:6px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:background .15s}
 .nav-item:hover{background:var(--accent-dim);color:var(--text)}
 .nav-item.active{background:var(--accent-dim);color:var(--accent);font-weight:500}
-.content{flex:1;overflow-y:auto;padding:40px;scroll-behavior:smooth}
-.content-inner{max-width:860px;margin:0 auto;padding-bottom:40vh}
+.content{flex:1;overflow-y:auto;padding:40px;scroll-behavior:smooth;display:flex;justify-content:center;gap:36px;align-items:flex-start}
+.content-inner{flex:1 1 auto;min-width:0;max-width:860px;padding-bottom:40vh}
+.toc{width:200px;flex:none;position:sticky;top:40px;align-self:flex-start;max-height:calc(100vh - 80px);overflow-y:auto;padding-left:14px;border-left:1px solid var(--border)}
+.toc-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:8px}
+.toc a{display:block;color:var(--muted);text-decoration:none;font-size:12.5px;line-height:1.45;padding:4px 0 4px 12px;margin-left:-14px;border-left:2px solid transparent;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:color .12s,border-color .12s}
+.toc a.lvl3{padding-left:24px;font-size:12px}
+.toc a:hover{color:var(--text)}
+.toc a.active{color:var(--accent);border-left-color:var(--accent)}
+@media(max-width:1100px){.toc{display:none}}
 .welcome{text-align:center;padding:120px 20px;color:var(--muted)}
 .welcome h2{font-size:20px;margin-bottom:8px;color:var(--text)}
 .welcome p{font-size:14px}
@@ -90,6 +109,14 @@ html[data-theme="light"] .theme-toggle .icon-sun{display:block}
 html[data-theme="light"] .theme-toggle .icon-moon{display:none}
 @media(max-width:768px){.sidebar{position:fixed;left:-300px;top:0;bottom:0;z-index:99;transition:left .25s ease}.sidebar.open{left:0}.overlay.show{display:block}.menu-toggle{display:block}.content{padding:20px 14px}.md h1{font-size:22px}.md h2{font-size:18px}.md h3{font-size:15px}.md pre{padding:10px 12px;font-size:12px}.md table{font-size:12px;display:block;overflow-x:auto}.md th,.md td{padding:6px 8px;white-space:nowrap}}
 ::-webkit-scrollbar{width:8px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}::-webkit-scrollbar-thumb:hover{background:var(--muted)}
+.md h1,.md h2,.md h3,.md h4{position:relative}
+.heading-anchor{position:absolute;left:-18px;top:.12em;font-size:.82em;font-weight:400;color:var(--muted);opacity:0;text-decoration:none;transition:opacity .12s,color .12s}
+.md h1:hover>.heading-anchor,.md h2:hover>.heading-anchor,.md h3:hover>.heading-anchor,.md h4:hover>.heading-anchor{opacity:.5}
+.heading-anchor:hover{opacity:1 !important;color:var(--accent)}
+.src-link{float:right;font-size:12px;color:var(--muted);text-decoration:none}
+.src-link:hover{color:var(--accent);text-decoration:underline}
+.nav-item[data-hit="1"]::after{content:"\00b6";margin-left:6px;color:var(--accent);opacity:.6;font-size:11px}
+@media(max-width:768px){.heading-anchor{display:none}}
 </style>
 <script>
 // Apply stored theme ASAP to prevent flash of wrong theme.
@@ -142,7 +169,12 @@ function closeSidebar(){document.getElementById('sidebar').classList.remove('ope
 // Each group has {titleKo, titleEn} and items have {nameKo, nameEn, pathKo, pathEn}.
 // pathKo / pathEn are relative to docs/. If an EN pair is missing, set pathEn to null
 // (falls back to Korean and disables EN-specific behaviors for that entry).
-var FILES = [
+// Groups sharing the same `section` object are bundled under one collapsible section header.
+var REF_SECTION = {ko:'레퍼런스', en:'Reference'};
+// BASE_FILES: always shown regardless of nav-sort mode.
+// REF_FEATURE / REF_LAYER: two groupings of the same reference docs, switched via the
+// nav-sort toggle (feature = by product domain, layer = by lib/ source folder).
+var BASE_FILES = [
   { titleKo:'개요', titleEn:'Overview', items:[
     {nameKo:'README (목차)',         nameEn:'README (index)',         pathKo:'README.md',         pathEn:'README_en.md'},
     {nameKo:'사용자 가이드',         nameEn:'User guide',             pathKo:'USER_GUIDE.md',     pathEn:'USER_GUIDE_en.md'},
@@ -162,57 +194,119 @@ var FILES = [
     {nameKo:'CI/CD 셋업',            nameEn:'CI/CD setup',            pathKo:'guides/cicd-setup.md',             pathEn:'guides/cicd-setup_en.md'},
     {nameKo:'스크린샷 갤러리',       nameEn:'Screenshots gallery',    pathKo:'guides/screenshots-gallery.md',    pathEn:'guides/screenshots-gallery_en.md'}
   ]},
-  { titleKo:'기능', titleEn:'Features', items:[
+  { titleKo:'기능', titleEn:'Features', section:REF_SECTION, items:[
     {nameKo:'공용 기능',             nameEn:'Public features',        pathKo:'features/public-features.md',    pathEn:'features/public-features_en.md'},
     {nameKo:'개인 기능',             nameEn:'Personal features',      pathKo:'features/personal-features.md',  pathEn:'features/personal-features_en.md'},
     {nameKo:'커뮤니티 기능',         nameEn:'Community features',     pathKo:'features/community-features.md', pathEn:'features/community-features_en.md'},
     {nameKo:'관리자 기능',           nameEn:'Admin features',         pathKo:'features/admin-features.md',     pathEn:'features/admin-features_en.md'}
+  ]}
+];
+
+var REF_FEATURE = [
+  { titleKo:'급식', titleEn:'Meal', section:REF_SECTION, items:[
+    {nameKo:'MealDataApi',           nameEn:'MealDataApi',            pathKo:'reference/meal/meal_data_api.md',            pathEn:'reference/meal/meal_data_api_en.md'},
+    {nameKo:'Meal (모델)',           nameEn:'Meal (model)',           pathKo:'reference/meal/meal.md',                     pathEn:'reference/meal/meal_en.md'},
+    {nameKo:'DailyMealNotification', nameEn:'DailyMealNotification',  pathKo:'reference/meal/daily_meal_notification.md', pathEn:'reference/meal/daily_meal_notification_en.md'}
   ]},
-  { titleKo:'API', titleEn:'API', items:[
-    {nameKo:'MealDataApi',           nameEn:'MealDataApi',            pathKo:'api/meal_data_api.md',       pathEn:'api/meal_data_api_en.md'},
-    {nameKo:'NoticeDataApi',         nameEn:'NoticeDataApi',          pathKo:'api/notice_data_api.md',     pathEn:'api/notice_data_api_en.md'},
-    {nameKo:'TimetableDataApi',      nameEn:'TimetableDataApi',       pathKo:'api/timetable_data_api.md',  pathEn:'api/timetable_data_api_en.md'}
+  { titleKo:'시간표', titleEn:'Timetable', section:REF_SECTION, items:[
+    {nameKo:'TimetableDataApi',      nameEn:'TimetableDataApi',       pathKo:'reference/timetable/timetable_data_api.md', pathEn:'reference/timetable/timetable_data_api_en.md'},
+    {nameKo:'ScheduleData (모델)',   nameEn:'ScheduleData (model)',   pathKo:'reference/timetable/schedule_data.md',      pathEn:'reference/timetable/schedule_data_en.md'}
   ]},
-  { titleKo:'데이터', titleEn:'Data', items:[
-    {nameKo:'AuthService',           nameEn:'AuthService',            pathKo:'data/auth_service.md',          pathEn:'data/auth_service_en.md'},
-    {nameKo:'AuthRepository',        nameEn:'AuthRepository',         pathKo:'data/auth_repository.md',       pathEn:'data/auth_repository_en.md'},
-    {nameKo:'GradeManager',          nameEn:'GradeManager',           pathKo:'data/grade_manager.md',         pathEn:'data/grade_manager_en.md'},
-    {nameKo:'GradeRepository',       nameEn:'GradeRepository',        pathKo:'data/grade_repository.md',      pathEn:'data/grade_repository_en.md'},
-    {nameKo:'DdayManager',           nameEn:'DdayManager',            pathKo:'data/dday_manager.md',          pathEn:'data/dday_manager_en.md'},
-    {nameKo:'LocalDatabase',         nameEn:'LocalDatabase',          pathKo:'data/local_database.md',        pathEn:'data/local_database_en.md'},
-    {nameKo:'SubjectDataManager',    nameEn:'SubjectDataManager',     pathKo:'data/subject_data_manager.md',  pathEn:'data/subject_data_manager_en.md'},
-    {nameKo:'SearchTokens',          nameEn:'SearchTokens',           pathKo:'data/search_tokens.md',         pathEn:'data/search_tokens_en.md'},
-    {nameKo:'SearchHistoryService',  nameEn:'SearchHistoryService',   pathKo:'data/search_history_service.md', pathEn:'data/search_history_service_en.md'},
-    {nameKo:'SecureStorageService',  nameEn:'SecureStorageService',   pathKo:'data/secure_storage_service.md', pathEn:'data/secure_storage_service_en.md'},
-    {nameKo:'AnalyticsService',      nameEn:'AnalyticsService',       pathKo:'data/analytics_service.md',     pathEn:'data/analytics_service_en.md'},
-    {nameKo:'SettingData',           nameEn:'SettingData',            pathKo:'data/setting_data.md',          pathEn:'data/setting_data_en.md'},
-    {nameKo:'ServiceLocator',        nameEn:'ServiceLocator',         pathKo:'data/service_locator.md',       pathEn:'data/service_locator_en.md'},
-    {nameKo:'PostRepository',        nameEn:'PostRepository',         pathKo:'data/post_repository.md',       pathEn:'data/post_repository_en.md'},
-    {nameKo:'Meal (모델)',           nameEn:'Meal (model)',           pathKo:'data/meal.md',                  pathEn:'data/meal_en.md'},
-    {nameKo:'ScheduleData (모델)',   nameEn:'ScheduleData (model)',   pathKo:'data/schedule_data.md',         pathEn:'data/schedule_data_en.md'},
-    {nameKo:'Subject (모델)',        nameEn:'Subject (model)',        pathKo:'data/subject.md',               pathEn:'data/subject_en.md'},
-    {nameKo:'Device',                nameEn:'Device',                 pathKo:'data/device.md',                pathEn:'data/device_en.md'},
-    {nameKo:'ApiStrings',            nameEn:'ApiStrings',             pathKo:'data/api_strings.md',           pathEn:'data/api_strings_en.md'},
-    {nameKo:'BoardCategories',       nameEn:'BoardCategories',        pathKo:'data/board_categories.md',      pathEn:'data/board_categories_en.md'},
-    {nameKo:'Exceptions',            nameEn:'Exceptions',             pathKo:'data/exceptions.md',            pathEn:'data/exceptions_en.md'}
+  { titleKo:'공지', titleEn:'Notice', section:REF_SECTION, items:[
+    {nameKo:'NoticeDataApi',         nameEn:'NoticeDataApi',          pathKo:'reference/notice/notice_data_api.md', pathEn:'reference/notice/notice_data_api_en.md'},
+    {nameKo:'PopupNotice',           nameEn:'PopupNotice',            pathKo:'reference/notice/popup_notice.md',    pathEn:'reference/notice/popup_notice_en.md'}
   ]},
-  { titleKo:'네트워크', titleEn:'Network', items:[
-    {nameKo:'NetworkStatus',         nameEn:'NetworkStatus',          pathKo:'network/network_status.md',         pathEn:'network/network_status_en.md'},
-    {nameKo:'OfflineQueueManager',   nameEn:'OfflineQueueManager',    pathKo:'network/offline_queue_manager.md',  pathEn:'network/offline_queue_manager_en.md'}
+  { titleKo:'커뮤니티', titleEn:'Community', section:REF_SECTION, items:[
+    {nameKo:'BoardCategories',       nameEn:'BoardCategories',        pathKo:'reference/community/board_categories.md', pathEn:'reference/community/board_categories_en.md'},
+    {nameKo:'PostRepository',        nameEn:'PostRepository',         pathKo:'reference/community/post_repository.md',  pathEn:'reference/community/post_repository_en.md'}
   ]},
-  { titleKo:'알림', titleEn:'Notifications', items:[
-    {nameKo:'FcmService',            nameEn:'FcmService',             pathKo:'notification/fcm_service.md',             pathEn:'notification/fcm_service_en.md'},
-    {nameKo:'DailyMealNotification', nameEn:'DailyMealNotification',  pathKo:'notification/daily_meal_notification.md', pathEn:'notification/daily_meal_notification_en.md'},
-    {nameKo:'PopupNotice',           nameEn:'PopupNotice',            pathKo:'notification/popup_notice.md',            pathEn:'notification/popup_notice_en.md'},
-    {nameKo:'UpdateChecker',         nameEn:'UpdateChecker',          pathKo:'notification/update_checker.md',          pathEn:'notification/update_checker_en.md'}
+  { titleKo:'성적', titleEn:'Grade', section:REF_SECTION, items:[
+    {nameKo:'GradeManager',          nameEn:'GradeManager',           pathKo:'reference/grade/grade_manager.md',        pathEn:'reference/grade/grade_manager_en.md'},
+    {nameKo:'GradeRepository',       nameEn:'GradeRepository',        pathKo:'reference/grade/grade_repository.md',     pathEn:'reference/grade/grade_repository_en.md'},
+    {nameKo:'Subject (모델)',        nameEn:'Subject (model)',        pathKo:'reference/grade/subject.md',              pathEn:'reference/grade/subject_en.md'},
+    {nameKo:'SubjectDataManager',    nameEn:'SubjectDataManager',     pathKo:'reference/grade/subject_data_manager.md', pathEn:'reference/grade/subject_data_manager_en.md'}
   ]},
-  { titleKo:'상태 관리', titleEn:'State management', items:[
-    {nameKo:'Providers',             nameEn:'Providers',              pathKo:'providers/providers.md',  pathEn:'providers/providers_en.md'}
+  { titleKo:'인증', titleEn:'Auth', section:REF_SECTION, items:[
+    {nameKo:'AuthService',           nameEn:'AuthService',            pathKo:'reference/auth/auth_service.md',    pathEn:'reference/auth/auth_service_en.md'},
+    {nameKo:'AuthRepository',        nameEn:'AuthRepository',         pathKo:'reference/auth/auth_repository.md', pathEn:'reference/auth/auth_repository_en.md'}
   ]},
-  { titleKo:'스타일', titleEn:'Styles', items:[
-    {nameKo:'AppColors',             nameEn:'AppColors',              pathKo:'styles/app_colors.md',        pathEn:'styles/app_colors_en.md'},
-    {nameKo:'DarkAppColors',         nameEn:'DarkAppColors',          pathKo:'styles/dark_app_colors.md',   pathEn:'styles/dark_app_colors_en.md'},
-    {nameKo:'LightAppColors',        nameEn:'LightAppColors',         pathKo:'styles/light_app_colors.md',  pathEn:'styles/light_app_colors_en.md'}
+  { titleKo:'D-day', titleEn:'D-day', section:REF_SECTION, items:[
+    {nameKo:'DdayManager',           nameEn:'DdayManager',            pathKo:'reference/dday/dday_manager.md', pathEn:'reference/dday/dday_manager_en.md'}
+  ]},
+  { titleKo:'검색', titleEn:'Search', section:REF_SECTION, items:[
+    {nameKo:'SearchTokens',          nameEn:'SearchTokens',           pathKo:'reference/search/search_tokens.md',          pathEn:'reference/search/search_tokens_en.md'},
+    {nameKo:'SearchHistoryService',  nameEn:'SearchHistoryService',   pathKo:'reference/search/search_history_service.md', pathEn:'reference/search/search_history_service_en.md'}
+  ]},
+  { titleKo:'알림', titleEn:'Notifications', section:REF_SECTION, items:[
+    {nameKo:'FcmService',            nameEn:'FcmService',             pathKo:'reference/notification/fcm_service.md', pathEn:'reference/notification/fcm_service_en.md'}
+  ]},
+  { titleKo:'설정', titleEn:'Settings', section:REF_SECTION, items:[
+    {nameKo:'SettingData',           nameEn:'SettingData',            pathKo:'reference/settings/setting_data.md', pathEn:'reference/settings/setting_data_en.md'}
+  ]},
+  { titleKo:'공통', titleEn:'Common', section:REF_SECTION, items:[
+    {nameKo:'LocalDatabase',         nameEn:'LocalDatabase',          pathKo:'reference/common/local_database.md',        pathEn:'reference/common/local_database_en.md'},
+    {nameKo:'ServiceLocator',        nameEn:'ServiceLocator',         pathKo:'reference/common/service_locator.md',       pathEn:'reference/common/service_locator_en.md'},
+    {nameKo:'SecureStorageService',  nameEn:'SecureStorageService',   pathKo:'reference/common/secure_storage_service.md', pathEn:'reference/common/secure_storage_service_en.md'},
+    {nameKo:'AnalyticsService',      nameEn:'AnalyticsService',       pathKo:'reference/common/analytics_service.md',     pathEn:'reference/common/analytics_service_en.md'},
+    {nameKo:'ApiStrings',            nameEn:'ApiStrings',             pathKo:'reference/common/api_strings.md',           pathEn:'reference/common/api_strings_en.md'},
+    {nameKo:'Exceptions',            nameEn:'Exceptions',             pathKo:'reference/common/exceptions.md',            pathEn:'reference/common/exceptions_en.md'},
+    {nameKo:'Device',                nameEn:'Device',                 pathKo:'reference/common/device.md',                pathEn:'reference/common/device_en.md'},
+    {nameKo:'NetworkStatus',         nameEn:'NetworkStatus',          pathKo:'reference/common/network_status.md',        pathEn:'reference/common/network_status_en.md'},
+    {nameKo:'OfflineQueueManager',   nameEn:'OfflineQueueManager',    pathKo:'reference/common/offline_queue_manager.md', pathEn:'reference/common/offline_queue_manager_en.md'},
+    {nameKo:'UpdateChecker',         nameEn:'UpdateChecker',          pathKo:'reference/common/update_checker.md',        pathEn:'reference/common/update_checker_en.md'},
+    {nameKo:'Providers',             nameEn:'Providers',              pathKo:'reference/common/providers.md',             pathEn:'reference/common/providers_en.md'},
+    {nameKo:'AppColors',             nameEn:'AppColors',              pathKo:'reference/common/app_colors.md',            pathEn:'reference/common/app_colors_en.md'},
+    {nameKo:'DarkAppColors',         nameEn:'DarkAppColors',          pathKo:'reference/common/dark_app_colors.md',       pathEn:'reference/common/dark_app_colors_en.md'},
+    {nameKo:'LightAppColors',        nameEn:'LightAppColors',         pathKo:'reference/common/light_app_colors.md',      pathEn:'reference/common/light_app_colors_en.md'}
+  ]}
+];
+
+var REF_LAYER = [
+  { titleKo:'api', titleEn:'api', section:REF_SECTION, items:[
+    {nameKo:'MealDataApi',           nameEn:'MealDataApi',            pathKo:'reference/meal/meal_data_api.md',            pathEn:'reference/meal/meal_data_api_en.md'},
+    {nameKo:'NoticeDataApi',         nameEn:'NoticeDataApi',          pathKo:'reference/notice/notice_data_api.md',        pathEn:'reference/notice/notice_data_api_en.md'},
+    {nameKo:'TimetableDataApi',      nameEn:'TimetableDataApi',       pathKo:'reference/timetable/timetable_data_api.md',  pathEn:'reference/timetable/timetable_data_api_en.md'}
+  ]},
+  { titleKo:'data', titleEn:'data', section:REF_SECTION, items:[
+    {nameKo:'AuthService',           nameEn:'AuthService',            pathKo:'reference/auth/auth_service.md',             pathEn:'reference/auth/auth_service_en.md'},
+    {nameKo:'AuthRepository',        nameEn:'AuthRepository',         pathKo:'reference/auth/auth_repository.md',          pathEn:'reference/auth/auth_repository_en.md'},
+    {nameKo:'GradeManager',          nameEn:'GradeManager',           pathKo:'reference/grade/grade_manager.md',           pathEn:'reference/grade/grade_manager_en.md'},
+    {nameKo:'GradeRepository',       nameEn:'GradeRepository',        pathKo:'reference/grade/grade_repository.md',        pathEn:'reference/grade/grade_repository_en.md'},
+    {nameKo:'DdayManager',           nameEn:'DdayManager',            pathKo:'reference/dday/dday_manager.md',             pathEn:'reference/dday/dday_manager_en.md'},
+    {nameKo:'LocalDatabase',         nameEn:'LocalDatabase',          pathKo:'reference/common/local_database.md',         pathEn:'reference/common/local_database_en.md'},
+    {nameKo:'SubjectDataManager',    nameEn:'SubjectDataManager',     pathKo:'reference/grade/subject_data_manager.md',    pathEn:'reference/grade/subject_data_manager_en.md'},
+    {nameKo:'SearchTokens',          nameEn:'SearchTokens',           pathKo:'reference/search/search_tokens.md',          pathEn:'reference/search/search_tokens_en.md'},
+    {nameKo:'SearchHistoryService',  nameEn:'SearchHistoryService',   pathKo:'reference/search/search_history_service.md', pathEn:'reference/search/search_history_service_en.md'},
+    {nameKo:'SecureStorageService',  nameEn:'SecureStorageService',   pathKo:'reference/common/secure_storage_service.md', pathEn:'reference/common/secure_storage_service_en.md'},
+    {nameKo:'AnalyticsService',      nameEn:'AnalyticsService',       pathKo:'reference/common/analytics_service.md',      pathEn:'reference/common/analytics_service_en.md'},
+    {nameKo:'SettingData',           nameEn:'SettingData',            pathKo:'reference/settings/setting_data.md',         pathEn:'reference/settings/setting_data_en.md'},
+    {nameKo:'ServiceLocator',        nameEn:'ServiceLocator',         pathKo:'reference/common/service_locator.md',        pathEn:'reference/common/service_locator_en.md'},
+    {nameKo:'PostRepository',        nameEn:'PostRepository',         pathKo:'reference/community/post_repository.md',    pathEn:'reference/community/post_repository_en.md'},
+    {nameKo:'Meal (모델)',           nameEn:'Meal (model)',           pathKo:'reference/meal/meal.md',                     pathEn:'reference/meal/meal_en.md'},
+    {nameKo:'ScheduleData (모델)',   nameEn:'ScheduleData (model)',   pathKo:'reference/timetable/schedule_data.md',       pathEn:'reference/timetable/schedule_data_en.md'},
+    {nameKo:'Subject (모델)',        nameEn:'Subject (model)',        pathKo:'reference/grade/subject.md',                 pathEn:'reference/grade/subject_en.md'},
+    {nameKo:'Device',                nameEn:'Device',                 pathKo:'reference/common/device.md',                 pathEn:'reference/common/device_en.md'},
+    {nameKo:'ApiStrings',            nameEn:'ApiStrings',             pathKo:'reference/common/api_strings.md',            pathEn:'reference/common/api_strings_en.md'},
+    {nameKo:'BoardCategories',       nameEn:'BoardCategories',        pathKo:'reference/community/board_categories.md',    pathEn:'reference/community/board_categories_en.md'},
+    {nameKo:'Exceptions',            nameEn:'Exceptions',             pathKo:'reference/common/exceptions.md',             pathEn:'reference/common/exceptions_en.md'}
+  ]},
+  { titleKo:'network', titleEn:'network', section:REF_SECTION, items:[
+    {nameKo:'NetworkStatus',         nameEn:'NetworkStatus',          pathKo:'reference/common/network_status.md',         pathEn:'reference/common/network_status_en.md'},
+    {nameKo:'OfflineQueueManager',   nameEn:'OfflineQueueManager',    pathKo:'reference/common/offline_queue_manager.md',  pathEn:'reference/common/offline_queue_manager_en.md'}
+  ]},
+  { titleKo:'notification', titleEn:'notification', section:REF_SECTION, items:[
+    {nameKo:'FcmService',            nameEn:'FcmService',             pathKo:'reference/notification/fcm_service.md',             pathEn:'reference/notification/fcm_service_en.md'},
+    {nameKo:'DailyMealNotification', nameEn:'DailyMealNotification',  pathKo:'reference/meal/daily_meal_notification.md',        pathEn:'reference/meal/daily_meal_notification_en.md'},
+    {nameKo:'PopupNotice',           nameEn:'PopupNotice',            pathKo:'reference/notice/popup_notice.md',                  pathEn:'reference/notice/popup_notice_en.md'},
+    {nameKo:'UpdateChecker',         nameEn:'UpdateChecker',          pathKo:'reference/common/update_checker.md',                pathEn:'reference/common/update_checker_en.md'}
+  ]},
+  { titleKo:'providers', titleEn:'providers', section:REF_SECTION, items:[
+    {nameKo:'Providers',             nameEn:'Providers',              pathKo:'reference/common/providers.md',  pathEn:'reference/common/providers_en.md'}
+  ]},
+  { titleKo:'styles', titleEn:'styles', section:REF_SECTION, items:[
+    {nameKo:'AppColors',             nameEn:'AppColors',              pathKo:'reference/common/app_colors.md',        pathEn:'reference/common/app_colors_en.md'},
+    {nameKo:'DarkAppColors',         nameEn:'DarkAppColors',          pathKo:'reference/common/dark_app_colors.md',   pathEn:'reference/common/dark_app_colors_en.md'},
+    {nameKo:'LightAppColors',        nameEn:'LightAppColors',         pathKo:'reference/common/light_app_colors.md',  pathEn:'reference/common/light_app_colors_en.md'}
   ]}
 ];
 
@@ -272,19 +366,34 @@ var FILES = [
   function getLang(){ return localStorage.getItem(LANG_KEY) === 'en' ? 'en' : 'ko'; }
   function setLang(l){ localStorage.setItem(LANG_KEY, l === 'en' ? 'en' : 'ko'); }
 
+  // ---- Nav-sort mode state (feature = by product domain, layer = by lib/ source folder) ----
+  var NAV_MODE_KEY = 'docsViewerNavMode';
+  function getNavMode(){ return localStorage.getItem(NAV_MODE_KEY) === 'layer' ? 'layer' : 'feature'; }
+  function setNavMode(m){ localStorage.setItem(NAV_MODE_KEY, m === 'layer' ? 'layer' : 'feature'); }
+  function currentFiles(){ return BASE_FILES.concat(getNavMode() === 'layer' ? REF_LAYER : REF_FEATURE); }
+
   // Build lookup: path -> { group, item, lang } and pair map (ko<->en).
+  // Rebuilt whenever the nav-sort mode changes, since group refs differ per grouping.
   var PATH_INDEX = {};
   var PAIR = {}; // koPath -> enPath and enPath -> koPath
-  FILES.forEach(function(g){
-    g.items.forEach(function(it){
-      PATH_INDEX[it.pathKo] = { group:g, item:it, lang:'ko' };
-      if(it.pathEn){
-        PATH_INDEX[it.pathEn] = { group:g, item:it, lang:'en' };
-        PAIR[it.pathKo] = it.pathEn;
-        PAIR[it.pathEn] = it.pathKo;
-      }
+  function rebuildPathIndex(){
+    PATH_INDEX = {};
+    PAIR = {};
+    currentFiles().forEach(function(g){
+      g.items.forEach(function(it){
+        PATH_INDEX[it.pathKo] = { group:g, item:it, lang:'ko' };
+        if(it.pathEn){
+          PATH_INDEX[it.pathEn] = { group:g, item:it, lang:'en' };
+          PAIR[it.pathKo] = it.pathEn;
+          PAIR[it.pathEn] = it.pathKo;
+        }
+      });
     });
-  });
+  }
+  rebuildPathIndex();
+
+  var CONTENT_INDEX = {};
+  Object.keys(MD_DATA).forEach(function(p){ CONTENT_INDEX[p] = (MD_DATA[p] || '').toLowerCase(); });
 
   function pathForItem(item, lang){
     if(lang === 'en' && item.pathEn) return item.pathEn;
@@ -296,6 +405,10 @@ var FILES = [
   function titleForGroup(g, lang){
     return (lang === 'en' && g.titleEn) ? g.titleEn : g.titleKo;
   }
+  function sectionForGroup(g, lang){
+    if(!g.section) return null;
+    return (lang === 'en' && g.section.en) ? g.section.en : g.section.ko;
+  }
 
   // ---- Navigation rendering ----
   var navList = document.getElementById('navList');
@@ -304,22 +417,60 @@ var FILES = [
   function renderNav(lang){
     navList.innerHTML = '';
     allItems = [];
-    FILES.forEach(function(g){
+    var lastSection = null;
+    currentFiles().forEach(function(g){
+      if(g.section && g.section !== lastSection){
+        var sEl = document.createElement('div');
+        sEl.className = 'nav-section';
+        var sText = document.createElement('span');
+        sText.textContent = sectionForGroup(g, lang);
+        sEl.appendChild(sText);
+        var modeToggle = document.createElement('div');
+        modeToggle.className = 'lang-toggle nav-mode-toggle';
+        modeToggle.setAttribute('role', 'group');
+        modeToggle.title = (lang === 'en') ? 'Reference sort order' : '레퍼런스 정렬 기준';
+        var curMode = getNavMode();
+        [['feature', lang === 'en' ? 'Feature' : '기능'], ['layer', lang === 'en' ? 'Layer' : '계층']].forEach(function(pair){
+          var m = pair[0];
+          var btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'lang-btn' + (curMode === m ? ' active' : '');
+          btn.textContent = pair[1];
+          btn.onclick = function(e){ e.stopPropagation(); if(getNavMode() !== m) applyNavMode(m); };
+          modeToggle.appendChild(btn);
+        });
+        sEl.appendChild(modeToggle);
+        navList.appendChild(sEl);
+      }
+      lastSection = g.section || null;
+      var collapsible = !!g.section;
       var gEl = document.createElement('div');
-      gEl.className = 'nav-group';
+      gEl.className = collapsible ? 'nav-group collapsible collapsed' : 'nav-group';
       var titleEl = document.createElement('div');
-      titleEl.className = 'nav-group-title';
-      titleEl.textContent = titleForGroup(g, lang);
+      titleEl.className = collapsible ? 'nav-group-title module' : 'nav-group-title';
+      var titleText = document.createElement('span');
+      titleText.textContent = titleForGroup(g, lang);
+      titleEl.appendChild(titleText);
+      if(collapsible){
+        var chev = document.createElement('span');
+        chev.className = 'nav-chevron';
+        chev.innerHTML = '<svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+        titleEl.appendChild(chev);
+        titleEl.onclick = function(){ gEl.classList.toggle('collapsed'); };
+      }
       gEl.appendChild(titleEl);
+      var itemsEl = document.createElement('div');
+      itemsEl.className = 'nav-group-items';
       g.items.forEach(function(it){
         var a = document.createElement('a');
         a.className = 'nav-item';
         a.textContent = nameForItem(it, lang);
         a.dataset.path = pathForItem(it, lang);
         a.onclick = function(){ loadFile(a.dataset.path); };
-        gEl.appendChild(a);
+        itemsEl.appendChild(a);
         allItems.push({el:a, item:it, group:g});
       });
+      gEl.appendChild(itemsEl);
       navList.appendChild(gEl);
     });
   }
@@ -354,25 +505,54 @@ var FILES = [
     applySearchFilter();
   }
 
+  function applyNavMode(mode){
+    setNavMode(mode);
+    rebuildPathIndex();
+    renderNav(getLang());
+    highlightActive(currentPath());
+    applySearchFilter();
+  }
+
   function highlightActive(p){
     allItems.forEach(function(i){
-      i.el.classList.toggle('active', i.el.dataset.path === p);
+      var on = i.el.dataset.path === p;
+      i.el.classList.toggle('active', on);
+      if(on){ var grp = i.el.closest('.nav-group'); if(grp) grp.classList.remove('collapsed'); }
     });
   }
 
   // ---- Search ----
   function applySearchFilter(){
     var q = (document.getElementById('search').value || '').toLowerCase().trim();
+    var lang = getLang();
     allItems.forEach(function(i){
       var hay = (i.item.nameKo + ' ' + (i.item.nameEn||'') + ' ' + i.item.pathKo + ' ' + (i.item.pathEn||'')).toLowerCase();
-      i.el.style.display = (!q || hay.indexOf(q) !== -1) ? '' : 'none';
+      var nameHit = !q || hay.indexOf(q) !== -1;
+      var bodyHit = false;
+      if(q && !nameHit){
+        var body = CONTENT_INDEX[pathForItem(i.item, lang)];
+        if(body && body.indexOf(q) !== -1) bodyHit = true;
+      }
+      i.el.style.display = (nameHit || bodyHit) ? '' : 'none';
+      if(bodyHit) i.el.dataset.hit = '1'; else i.el.removeAttribute('data-hit');
     });
     navList.querySelectorAll('.nav-group').forEach(function(g){
       var vis = Array.from(g.querySelectorAll('.nav-item')).some(function(i){ return i.style.display !== 'none'; });
       g.style.display = vis ? '' : 'none';
+      if(q) g.classList.remove('collapsed');
     });
   }
   document.getElementById('search').addEventListener('input', applySearchFilter);
+  document.getElementById('search').addEventListener('keydown', function(e){
+    if(e.key !== 'Enter') return;
+    for(var i = 0; i < allItems.length; i++){
+      if(allItems[i].el.style.display !== 'none'){
+        loadFile(allItems[i].el.dataset.path);
+        this.blur();
+        break;
+      }
+    }
+  });
 
   // ---- Navigation history (within viewer) ----
   var history = [];
@@ -381,6 +561,79 @@ var FILES = [
 
   function currentPath(){
     return historyIndex >= 0 ? history[historyIndex] : null;
+  }
+
+  function copyText(text, onDone){
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(onDone || function(){}).catch(function(){});
+    } else {
+      var ta = document.createElement('textarea');
+      ta.value = text; document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); if(onDone) onDone(); } catch(e){}
+      document.body.removeChild(ta);
+    }
+  }
+
+  var tocHeads = [], tocLinks = [];
+  function buildTocFor(inner, p){
+    var toc = document.getElementById('toc');
+    if(!toc){
+      toc = document.createElement('nav'); toc.id = 'toc'; toc.className = 'toc';
+      document.getElementById('content').appendChild(toc);
+    }
+    toc.innerHTML = '';
+    tocHeads = []; tocLinks = [];
+    var heads = Array.prototype.slice.call(inner.querySelectorAll('.md h2, .md h3'));
+    if(heads.length < 2){ toc.style.display = 'none'; return; }
+    toc.style.display = '';
+    var label = document.createElement('div');
+    label.className = 'toc-label';
+    label.textContent = getLang() === 'en' ? 'On this page' : '이 페이지';
+    toc.appendChild(label);
+    heads.forEach(function(h){
+      if(!h.id) h.id = slugify(h.textContent);
+      var a = document.createElement('a');
+      a.textContent = h.textContent;
+      a.className = h.tagName === 'H3' ? 'lvl3' : 'lvl2';
+      a.href = '#' + p + '#' + h.id;
+      a.addEventListener('click', function(e){
+        e.preventDefault();
+        h.scrollIntoView({behavior:'smooth', block:'start'});
+        window.history.pushState({path:p, scrollTo:h.id}, '', '#' + p + '#' + h.id);
+      });
+      toc.appendChild(a);
+      tocHeads.push(h); tocLinks.push(a);
+    });
+    syncTocActive();
+  }
+  function syncTocActive(){
+    if(!tocHeads.length) return;
+    var scroller = document.getElementById('content');
+    var stop = scroller.getBoundingClientRect().top;
+    var active = 0;
+    for(var i = 0; i < tocHeads.length; i++){
+      if(tocHeads[i].getBoundingClientRect().top - stop <= 100) active = i; else break;
+    }
+    tocLinks.forEach(function(a, idx){ a.classList.toggle('active', idx === active); });
+  }
+  document.getElementById('content').addEventListener('scroll', syncTocActive, {passive:true});
+
+  function addHeadingAnchors(inner, p){
+    inner.querySelectorAll('.md h1, .md h2, .md h3, .md h4').forEach(function(h){
+      if(!h.id || h.querySelector('.heading-anchor')) return;
+      var a = document.createElement('a');
+      a.className = 'heading-anchor';
+      a.href = '#' + p + '#' + h.id;
+      a.textContent = '#';
+      a.title = getLang() === 'en' ? 'Copy link to this section' : '이 섹션 링크 복사';
+      a.addEventListener('click', function(e){
+        e.preventDefault();
+        copyText(location.origin + location.pathname + '#' + p + '#' + h.id);
+        window.history.pushState({path:p, scrollTo:h.id}, '', '#' + p + '#' + h.id);
+        h.scrollIntoView({behavior:'smooth', block:'start'});
+      });
+      h.appendChild(a);
+    });
   }
 
   function loadFile(p, opts){
@@ -422,7 +675,9 @@ var FILES = [
       + '</span>'
       + '<a href="#" onclick="window._loadFile(\'' + rootPath + '\');return false">docs</a> / '
       + (dir ? dir + ' / ' : '')
-      + '<strong>' + fileName + '</strong></div>';
+      + '<strong>' + fileName + '</strong>'
+      + '<a class="src-link" href="https://github.com/Monkshark/hansol_hs_flutter_app/blob/master/docs/' + p + '" target="_blank" rel="noopener">' + (lang === 'en' ? 'Edit on GitHub' : 'GitHub에서 편집') + '</a>'
+      + '</div>';
 
     inner.innerHTML = navHtml + '<div class="md">' + html + '</div>';
 
@@ -430,6 +685,9 @@ var FILES = [
     inner.querySelectorAll('.md h1, .md h2, .md h3, .md h4, .md h5, .md h6').forEach(function(h){
       if(!h.id) h.id = slugify(h.textContent);
     });
+
+    buildTocFor(inner, p);
+    addHeadingAnchors(inner, p);
 
     // Rewrite .md links to in-viewer navigation.
     inner.querySelectorAll('.md a[href]').forEach(function(a){
