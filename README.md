@@ -1,5 +1,7 @@
 # 한솔고등학교 앱
 
+![Hansol High School app cover](.github/images/portfolio-cover.png)
+
 > English: [README_en.md](./README_en.md)
 
 [![Flutter CI](https://github.com/Monkshark/hansol_hs_flutter_app/actions/workflows/flutter.yml/badge.svg)](https://github.com/Monkshark/hansol_hs_flutter_app/actions/workflows/flutter.yml)
