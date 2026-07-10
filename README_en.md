@@ -77,8 +77,8 @@ Full gallery → [Screenshots Gallery](https://monkshark.github.io/hansol_hs_flu
 
 | Metric | Value | Notes |
 |---|---|---|
-| **Total LOC** | **~43,000** | Dart 36,031 + TypeScript/TSX + Java/XML + Swift + JS |
-| **Source files** | **139** (Flutter) + **30** (Admin Web TS/TSX) + Android/iOS widgets | screens, extracted widgets, models/utils/services |
+| **Total LOC** | **~51,900** | Dart 44,349 (excl. generated) + TypeScript/TSX 3,057 + JS 2,940 + Java/XML 1,174 + Swift 373 |
+| **Source files** | **193** (Flutter, excl. generated) + **30** (Admin Web TS/TSX) + Android/iOS widgets | screens, extracted widgets, models/utils/services |
 | **Role model** | **4 tiers** | `user` / `moderator` / `auditor` / `manager` / `admin` — checked via Firebase Auth custom claims (zero Firestore `get()` in rules) |
 | **PIPA compliance** | **3 collections** | `appeals` (90-day TTL) · `data_requests` (30-day TTL) · `community_rules` |
 | **Cloud Functions** | **24** | Kakao/School OTP · triggers (post/comment/like/user CRUD/chat/report) · suspension scheduler · OG renderer · old-post cleanup · data export · progressive suspension · annual grade promotion · teacher invite |
@@ -99,8 +99,8 @@ Full gallery → [Screenshots Gallery](https://monkshark.github.io/hansol_hs_flu
 | Item | Value | Method |
 |---|---|---|
 | **Release APK** | **27 MB** | `build/app/outputs/flutter-apk/app-release.apk` (universal) |
-| **Dart LOC** | **36,031** | `find lib -name '*.dart' \| xargs cat \| wc -l` |
-| **Dart files** | **139** | `find lib -name '*.dart' \| wc -l` |
+| **Dart LOC** | **44,349** | `find lib test integration_test -name '*.dart' ! -name '*.g.dart' ! -name '*.freezed.dart' \| xargs cat \| wc -l` |
+| **Dart files** | **193** | `find lib test integration_test -name '*.dart' ! -name '*.g.dart' ! -name '*.freezed.dart' \| wc -l` |
 | **Flutter test count** | **563** | test() 470 + testWidgets() 89 + Integration 4 |
 | **Rules test count** | **85** | `firebase emulators:exec ... npm test` (covers 4-tier roles + PIPA collections) |
 | **Compressed image size** | **~30% of original** | 1080px wide, JPEG q80, EXIF stripped |
