@@ -77,8 +77,8 @@ Full gallery → [Screenshots Gallery](https://monkshark.github.io/hansol_hs_flu
 
 | Metric | Value | Notes |
 |---|---|---|
-| **Total LOC** | **~51,900** | Dart 44,349 (excl. generated) + TypeScript/TSX 3,057 + JS 2,940 + Java/XML 1,174 + Swift 373 |
-| **Source files** | **193** (Flutter, excl. generated) + **30** (Admin Web TS/TSX) + Android/iOS widgets | screens, extracted widgets, models/utils/services |
+| **Total LOC** | **~51,900** | Dart 44,349 + TypeScript/TSX 3,057 + JS 2,940 + Java/XML 1,174 + Swift 373 |
+| **Source files** | **193** (Flutter) + **30** (Admin Web TS/TSX) + Android/iOS widgets | screens, extracted widgets, models/utils/services |
 | **Role model** | **4 tiers** | `user` / `moderator` / `auditor` / `manager` / `admin` — checked via Firebase Auth custom claims (zero Firestore `get()` in rules) |
 | **PIPA compliance** | **3 collections** | `appeals` (90-day TTL) · `data_requests` (30-day TTL) · `community_rules` |
 | **Cloud Functions** | **24** | Kakao/School OTP · triggers (post/comment/like/user CRUD/chat/report) · suspension scheduler · OG renderer · old-post cleanup · data export · progressive suspension · annual grade promotion · teacher invite |
