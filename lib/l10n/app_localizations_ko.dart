@@ -63,6 +63,29 @@ class AppLocalizationsKo extends AppLocalizations {
   String get login_consentRequired => '필수 항목에 모두 동의해야 가입할 수 있습니다';
 
   @override
+  String get login_linkTitle => '이미 가입된 이메일이에요';
+
+  @override
+  String login_linkMessage(Object email, Object provider) {
+    return '$email은(는) 이미 $provider(으)로 가입되어 있어요. $provider로 로그인하면 계정이 자동으로 연결돼요.';
+  }
+
+  @override
+  String get login_linkMessageUnknown =>
+      '이 이메일은 이미 다른 방법으로 가입되어 있어요. 처음 가입할 때 썼던 방법으로 로그인해주세요.';
+
+  @override
+  String login_linkButton(Object provider) {
+    return '$provider로 로그인하고 연결하기';
+  }
+
+  @override
+  String get login_linkSuccess => '계정이 연결됐어요';
+
+  @override
+  String get login_linkFailed => '계정 연결에 실패했어요';
+
+  @override
   String get verify_required_title => '인증이 필요해요';
 
   @override
@@ -1634,6 +1657,32 @@ class AppLocalizationsKo extends AppLocalizations {
   String get timetable_dayFri => '금';
 
   @override
+  String get timetable_tabToday => '오늘';
+
+  @override
+  String get timetable_tabWeekly => '주간';
+
+  @override
+  String get timetable_inClass => '수업 중';
+
+  @override
+  String get timetable_current => '진행 중';
+
+  @override
+  String timetable_remainingMin(Object minutes) {
+    return '남은 시간 $minutes분';
+  }
+
+  @override
+  String get timetable_conflictBadge => '중복';
+
+  @override
+  String get timetable_conflictHint => '시간표가 겹쳐요 · 탭해서 선택';
+
+  @override
+  String get timetable_thisWeek => '이번 주';
+
+  @override
   String get timetable_selectTitle => '선택과목 설정';
 
   @override
@@ -1851,6 +1900,43 @@ class AppLocalizationsKo extends AppLocalizations {
   String get notiSetting_dinner => '석식 알림';
 
   @override
+  String get notiSetting_academicSection => '학사일정 알림';
+
+  @override
+  String get notiSetting_academicDayBefore => '전날 알림';
+
+  @override
+  String get notiSetting_academicDayBeforeDesc => '학사일정 하루 전날 저녁 9시에 알림';
+
+  @override
+  String get notiSetting_academicDayOf => '당일 알림';
+
+  @override
+  String get notiSetting_academicDayOfDesc => '학사일정 당일 아침 8시에 알림';
+
+  @override
+  String get notiSetting_personalSection => '내 일정 알림';
+
+  @override
+  String get notiSetting_personalOnTime => '정시 알림';
+
+  @override
+  String get notiSetting_personalOnTimeDesc => '일정 시작 시각에 알림 (시간 지정된 일정만)';
+
+  @override
+  String get notiSetting_personalTenMinBefore => '10분 전 알림';
+
+  @override
+  String get notiSetting_personalTenMinBeforeDesc =>
+      '일정 시작 10분 전에 알림 (시간 지정된 일정만)';
+
+  @override
+  String get notiSetting_personalDayBefore => '전날 알림';
+
+  @override
+  String get notiSetting_personalDayBeforeDesc => '일정 하루 전날 저녁 9시에 알림';
+
+  @override
   String get notiSetting_boardSection => '게시판 알림';
 
   @override
@@ -2062,6 +2148,34 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get settings_myAccount => '내 계정';
+
+  @override
+  String get settings_connectedAccounts => '연결된 계정';
+
+  @override
+  String get account_connectedTitle => '연결된 계정';
+
+  @override
+  String get account_connectedDesc =>
+      '다른 로그인 방법을 연결하면 어느 것으로 로그인해도 같은 계정으로 접속돼요.';
+
+  @override
+  String get account_connected => '연결됨';
+
+  @override
+  String get account_notConnected => '연결 안 됨';
+
+  @override
+  String get account_connectButton => '연결하기';
+
+  @override
+  String get account_connectSuccess => '연결됐어요';
+
+  @override
+  String get account_connectFailed => '연결에 실패했어요';
+
+  @override
+  String get account_connectAlreadyLinked => '이미 다른 계정에 연결된 계정이에요';
 
   @override
   String get settings_nameDefault => '이름 없음';
@@ -2655,6 +2769,58 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get noti_schoolName => '한솔고등학교';
+
+  @override
+  String get noti_academicChannelName => '학사일정 알림';
+
+  @override
+  String get noti_academicChannelDesc => '학사일정 알림을 제공합니다.';
+
+  @override
+  String get noti_academicDayOfTitle => '📅 오늘의 학사일정';
+
+  @override
+  String noti_academicDayOfBody(Object eventName) {
+    return '오늘은 $eventName입니다';
+  }
+
+  @override
+  String get noti_academicDayBeforeTitle => '📅 내일의 학사일정';
+
+  @override
+  String noti_academicDayBeforeBody(Object eventName) {
+    return '내일은 $eventName입니다';
+  }
+
+  @override
+  String get noti_scheduleChannelName => '내 일정 알림';
+
+  @override
+  String get noti_scheduleChannelDesc => '개인 일정 알림을 제공합니다.';
+
+  @override
+  String get noti_scheduleOnTimeTitle => '🗓️ 일정 시작';
+
+  @override
+  String noti_scheduleOnTimeBody(Object content) {
+    return '$content 일정이 시작됩니다';
+  }
+
+  @override
+  String get noti_scheduleTenMinBeforeTitle => '🗓️ 일정 10분 전';
+
+  @override
+  String noti_scheduleTenMinBeforeBody(Object content) {
+    return '$content 일정이 10분 후 시작됩니다';
+  }
+
+  @override
+  String get noti_scheduleDayBeforeTitle => '🗓️ 내일의 일정';
+
+  @override
+  String noti_scheduleDayBeforeBody(Object content) {
+    return '내일 $content 일정이 있습니다';
+  }
 
   @override
   String get api_noInternet => '식단 정보를 확인하려면 인터넷에 연결하세요';
