@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:hansol_high_school/styles/app_colors.dart';
 
 class TimetableCell extends StatelessWidget {
   final String subject;
   final bool isConflict;
   final bool isDark;
   final bool isToday;
+  final bool isCurrentPeriod;
   final Color? customColor;
   final VoidCallback? onLongPress;
+  final VoidCallback? onTap;
 
   const TimetableCell({
     super.key,
@@ -14,8 +17,10 @@ class TimetableCell extends StatelessWidget {
     required this.isConflict,
     required this.isDark,
     this.isToday = false,
+    this.isCurrentPeriod = false,
     this.customColor,
     this.onLongPress,
+    this.onTap,
   });
 
   static const _lightPastels = [
@@ -39,10 +44,34 @@ class TimetableCell extends StatelessWidget {
     Color(0xFF5A7A4A), Color(0xFF8A4A4A), Color(0xFF4A7A8A),
   ];
 
-  int _colorIndex(String s) => s.hashCode.abs() % _lightPastels.length;
+  static int _colorIndex(String s) => s.hashCode.abs() % _lightPastels.length;
+
+  static Color conflictColorFor(bool isDark) =>
+      isDark ? Colors.amber.shade300 : Colors.amber.shade800;
+
+  /// Resolves the background/text color pair a subject renders with —
+  /// shared by the grid cell, the daily list rows and the weekly mini-strip
+  /// so they all stay visually consistent.
+  static SubjectColors colorsFor(String subject, bool isDark, [Color? customColor]) {
+    if (customColor != null) {
+      final bg = isDark
+          ? HSLColor.fromColor(customColor).withLightness(0.15).withSaturation(0.3).toColor()
+          : HSLColor.fromColor(customColor).withLightness(0.92).withSaturation(0.4).toColor();
+      final text = isDark
+          ? HSLColor.fromColor(customColor).withLightness(0.75).toColor()
+          : HSLColor.fromColor(customColor).withLightness(0.35).toColor();
+      return SubjectColors(bg, text);
+    }
+    final idx = _colorIndex(subject);
+    return isDark
+        ? SubjectColors(_darkPastels[idx], _lightPastels[idx])
+        : SubjectColors(_lightPastels[idx], _textColors[idx]);
+  }
 
   @override
   Widget build(BuildContext context) {
+    final conflictColor = conflictColorFor(isDark);
+
     if (subject.isEmpty) {
       return Container(
         margin: const EdgeInsets.all(1.5),
@@ -53,48 +82,102 @@ class TimetableCell extends StatelessWidget {
       );
     }
 
-    Color bg;
-    Color textColor;
-
-    if (customColor != null) {
-      bg = isDark
-          ? HSLColor.fromColor(customColor!).withLightness(0.15).withSaturation(0.3).toColor()
-          : HSLColor.fromColor(customColor!).withLightness(0.92).withSaturation(0.4).toColor();
-      textColor = isDark
-          ? HSLColor.fromColor(customColor!).withLightness(0.75).toColor()
-          : HSLColor.fromColor(customColor!).withLightness(0.35).toColor();
-    } else {
-      final idx = _colorIndex(subject);
-      bg = isDark ? _darkPastels[idx] : _lightPastels[idx];
-      textColor = isDark ? _lightPastels[idx] : _textColors[idx];
-    }
+    final colors = colorsFor(subject, isDark, customColor);
+    final bg = colors.bg;
+    final textColor = colors.text;
 
     return GestureDetector(
       onLongPress: onLongPress,
-      child: Container(
-        margin: const EdgeInsets.all(1.5),
-        decoration: BoxDecoration(
-          color: bg,
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 2),
-            child: Text(
-              subject,
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                color: textColor,
-                height: 1.2,
+      onTap: onTap,
+      child: Stack(
+        children: [
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            margin: const EdgeInsets.all(1.5),
+            decoration: BoxDecoration(
+              color: bg,
+              borderRadius: BorderRadius.circular(10),
+              border: isConflict
+                  ? Border.all(color: conflictColor, width: 1.5)
+                  : isCurrentPeriod
+                      ? Border.all(color: AppColors.theme.primaryColor, width: 2)
+                      : null,
+              boxShadow: isCurrentPeriod
+                  ? [
+                      BoxShadow(
+                        color: AppColors.theme.primaryColor.withAlpha(70),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ]
+                  : null,
+            ),
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 2),
+                child: Text(
+                  subject,
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: textColor,
+                    height: 1.2,
+                  ),
+                ),
               ),
             ),
           ),
-        ),
+          if (isConflict)
+            Positioned(
+              top: 1.5,
+              right: 1.5,
+              child: ClipPath(
+                clipper: _CornerFlagClipper(),
+                child: Container(
+                  width: 14,
+                  height: 14,
+                  color: conflictColor,
+                ),
+              ),
+            ),
+          if (isConflict)
+            Positioned(
+              top: 1.5,
+              right: 2.5,
+              child: Text(
+                '!',
+                style: TextStyle(
+                  fontSize: 8,
+                  fontWeight: FontWeight.w700,
+                  color: isDark ? const Color(0xFF221A05) : Colors.white,
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
+}
+
+class SubjectColors {
+  final Color bg;
+  final Color text;
+  const SubjectColors(this.bg, this.text);
+}
+
+class _CornerFlagClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    return Path()
+      ..moveTo(0, 0)
+      ..lineTo(size.width, 0)
+      ..lineTo(size.width, size.height)
+      ..close();
+  }
+
+  @override
+  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
 }

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:developer';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -14,6 +15,7 @@ import 'package:hansol_high_school/data/auth_service.dart';
 import 'package:hansol_high_school/styles/app_colors.dart';
 import 'package:hansol_high_school/styles/responsive.dart';
 import 'package:hansol_high_school/widgets/error_view.dart';
+import 'package:hansol_high_school/widgets/home/current_subject_card.dart';
 import 'package:hansol_high_school/widgets/setting/grade_and_class_picker.dart';
 import 'package:hansol_high_school/screens/sub/timetable_widgets/color_picker_dialog.dart';
 import 'package:hansol_high_school/screens/sub/timetable_widgets/conflict_dialog.dart';
@@ -38,6 +40,31 @@ class _TimetableViewScreenState extends State<TimetableViewScreen> {
   bool _isShowingConflictDialog = false;
   Map<String, int> _subjectColors = {};
   bool _isTeacher = false;
+  bool _showWeekly = true;
+  Timer? _clockTimer;
+  DateTime _clockNow = DateTime.now();
+
+  static const _periodTimes = [
+    [8, 40, 9, 30],
+    [9, 40, 10, 30],
+    [10, 40, 11, 30],
+    [11, 40, 12, 30],
+    [13, 30, 14, 20],
+    [14, 30, 15, 20],
+    [15, 30, 16, 20],
+  ];
+
+  /// 0-based index of the period happening right now, or -1 if between/after classes.
+  int get _currentPeriodIndex {
+    if (_clockNow.weekday > 5) return -1;
+    final nowMinutes = _clockNow.hour * 60 + _clockNow.minute;
+    for (int i = 0; i < _periodTimes.length; i++) {
+      final startMin = _periodTimes[i][0] * 60 + _periodTimes[i][1];
+      final endMin = _periodTimes[i][2] * 60 + _periodTimes[i][3];
+      if (nowMinutes >= startMin && nowMinutes < endMin) return i;
+    }
+    return -1;
+  }
 
   @override
   void initState() {
@@ -61,6 +88,15 @@ class _TimetableViewScreenState extends State<TimetableViewScreen> {
       ));
     }
     _checkTeacher();
+    _clockTimer = Timer.periodic(const Duration(minutes: 1), (_) {
+      if (mounted) setState(() => _clockNow = DateTime.now());
+    });
+  }
+
+  @override
+  void dispose() {
+    _clockTimer?.cancel();
+    super.dispose();
   }
 
   Future<void> _loadSubjectColors() async {
@@ -313,6 +349,30 @@ class _TimetableViewScreenState extends State<TimetableViewScreen> {
     }
   }
 
+  Future<void> _resolveConflictSlot(String slot, List<String> subjects) async {
+    if (_isShowingConflictDialog) return;
+    _isShowingConflictDialog = true;
+    try {
+      final parts = slot.split('_');
+      final chosen = await showDialog<String>(
+        context: context,
+        builder: (_) => ConflictDialog(
+          dayName: parts[0],
+          period: parts[1],
+          subjects: subjects,
+        ),
+      );
+      if (chosen != null) {
+        _conflictResolutions[slot] = chosen;
+        await _saveConflictResolutions();
+        _future = _buildTimetable();
+        if (mounted) setState(() {});
+      }
+    } finally {
+      _isShowingConflictDialog = false;
+    }
+  }
+
   Widget _buildEmptyView(bool hasConflicts, int conflictCount) {
     final notSet = !SettingData().isGradeSet;
     final is1st = _grade == 1;
@@ -511,8 +571,10 @@ class _TimetableViewScreenState extends State<TimetableViewScreen> {
     );
   }
 
+  String _formatClock(int h, int m) => '${h.toString().padLeft(2, '0')}:${m.toString().padLeft(2, '0')}';
+
   Widget _buildGridView(_TimetableResult result, bool isDark) {
-    final todayWeekday = DateTime.now().weekday;
+    final todayWeekday = _clockNow.weekday;
     final l10n = AppLocalizations.of(context)!;
     final days = [l10n.timetable_dayMon, l10n.timetable_dayTue, l10n.timetable_dayWed, l10n.timetable_dayThu, l10n.timetable_dayFri];
     int maxPeriod = 0;
@@ -526,11 +588,59 @@ class _TimetableViewScreenState extends State<TimetableViewScreen> {
     }
     if (maxPeriod == 0) maxPeriod = 7;
 
-    return Column(children: [Expanded(child: Padding(
+    return Column(children: [Expanded(child: SingleChildScrollView(
       padding: EdgeInsets.fromLTRB(10, 8, 10, MediaQuery.of(context).padding.bottom + 12),
       child: Column(children: [
+        _buildTabToggle(l10n),
+        const SizedBox(height: 10),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 2),
+          child: CurrentSubjectCard(),
+        ),
+        const SizedBox(height: 12),
+        _showWeekly
+            ? _buildWeeklyGrid(result, isDark, days, maxPeriod, todayWeekday)
+            : _buildTodayView(result, isDark, days, maxPeriod, todayWeekday, l10n),
+      ]),
+    ))]);
+  }
+
+  Widget _buildTabToggle(AppLocalizations l10n) {
+    Widget segment(String label, bool selected, VoidCallback onTap) {
+      return Expanded(child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            color: selected ? Theme.of(context).scaffoldBackgroundColor : Colors.transparent,
+            borderRadius: BorderRadius.circular(9),
+            boxShadow: selected ? [BoxShadow(color: Colors.black.withAlpha(20), blurRadius: 2, offset: const Offset(0, 1))] : null,
+          ),
+          child: Center(child: Text(label, style: TextStyle(
+            fontSize: Responsive.sp(context, 11.5),
+            fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
+            color: selected ? Theme.of(context).textTheme.bodyLarge?.color : AppColors.theme.darkGreyColor,
+          ))),
+        ),
+      ));
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(color: AppColors.theme.lightGreyColor, borderRadius: BorderRadius.circular(11)),
+      child: Row(children: [
+        segment(l10n.timetable_tabToday, !_showWeekly, () => setState(() => _showWeekly = false)),
+        segment(l10n.timetable_tabWeekly, _showWeekly, () => setState(() => _showWeekly = true)),
+      ]),
+    );
+  }
+
+  Widget _buildWeeklyGrid(_TimetableResult result, bool isDark, List<String> days, int maxPeriod, int todayWeekday) {
+    final currentPeriod = _currentPeriodIndex;
+    return Column(children: [
         Row(children: [
-          SizedBox(width: Responsive.w(context, 30)),
+          SizedBox(width: Responsive.w(context, 36)),
           ...List.generate(5, (i) {
             final isToday = todayWeekday == i + 1;
             return Expanded(child: Center(child: Container(
@@ -542,25 +652,155 @@ class _TimetableViewScreenState extends State<TimetableViewScreen> {
           }),
         ]),
         const SizedBox(height: 8),
-        Expanded(child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          SizedBox(width: Responsive.w(context, 30), child: Column(children: List.generate(maxPeriod, (p) => Expanded(
-            child: Center(child: Text('${p + 1}', style: TextStyle(fontSize: Responsive.sp(context, 12), fontWeight: FontWeight.w600, color: AppColors.theme.darkGreyColor))))))),
+        Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          SizedBox(width: Responsive.w(context, 36), child: Column(children: List.generate(maxPeriod, (p) {
+            final isNow = p == currentPeriod && todayWeekday <= 5;
+            return SizedBox(height: Responsive.r(context, 58), child: Center(child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              margin: const EdgeInsets.symmetric(vertical: 1.5),
+              width: Responsive.w(context, 26),
+              decoration: BoxDecoration(
+                color: isNow ? AppColors.theme.primaryColor : Colors.transparent,
+                borderRadius: BorderRadius.circular(9),
+              ),
+              child: Center(child: Text('${p + 1}', style: TextStyle(fontSize: Responsive.sp(context, 12), fontWeight: FontWeight.w700,
+                color: isNow ? Colors.white : AppColors.theme.darkGreyColor))),
+            )));
+          }))),
           ...List.generate(5, (day) {
             final isToday = todayWeekday == day + 1;
             return Expanded(child: Container(
-              decoration: isToday ? BoxDecoration(color: (isDark ? Colors.white : AppColors.theme.primaryColor).withAlpha(8), borderRadius: BorderRadius.circular(10)) : null,
+              decoration: isToday ? BoxDecoration(
+                color: (isDark ? AppColors.theme.tertiaryColor : AppColors.theme.primaryColor).withAlpha(23),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.theme.primaryColor.withAlpha(36), width: 1),
+              ) : null,
               child: Column(children: List.generate(maxPeriod, (p) {
                 final name = result.grid[day][p];
                 final slot = '${days[day]}_${p + 1}';
-                return Expanded(child: TimetableCell(subject: name, isConflict: result.conflicts.containsKey(slot), isDark: isDark, isToday: isToday,
+                final isConflict = result.conflicts.containsKey(slot);
+                return SizedBox(height: Responsive.r(context, 58), child: TimetableCell(subject: name, isConflict: isConflict, isDark: isDark, isToday: isToday,
+                  isCurrentPeriod: isToday && p == currentPeriod,
                   customColor: _subjectColors.containsKey(name) ? Color(_subjectColors[name]! | 0xFF000000) : null,
-                  onLongPress: name.isEmpty ? null : () => _showColorPicker(name)));
+                  onLongPress: name.isEmpty ? null : () => _showColorPicker(name),
+                  onTap: isConflict ? () => _resolveConflictSlot(slot, result.conflicts[slot]!) : null));
               })),
             ));
           }),
-        ])),
-      ]),
-    ))]);
+        ]),
+    ]);
+  }
+
+  Widget _buildTodayView(_TimetableResult result, bool isDark, List<String> days, int maxPeriod, int todayWeekday, AppLocalizations l10n) {
+    if (todayWeekday > 5) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 40),
+        child: Center(child: Text(l10n.widget_weekend,
+          style: TextStyle(fontSize: Responsive.sp(context, 14), color: AppColors.theme.darkGreyColor))),
+      );
+    }
+
+    final todayIndex = todayWeekday - 1;
+    final currentPeriod = _currentPeriodIndex;
+    final nowMinutes = _clockNow.hour * 60 + _clockNow.minute;
+    final rows = <int>[for (int p = 0; p < maxPeriod; p++) if (result.grid[todayIndex][p].isNotEmpty) p];
+
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      if (rows.isEmpty)
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 40),
+          child: Center(child: Text(l10n.widget_noClass,
+            style: TextStyle(fontSize: Responsive.sp(context, 14), color: AppColors.theme.darkGreyColor))),
+        )
+      else
+        ...rows.map((p) {
+          final name = result.grid[todayIndex][p];
+          final slot = '${days[todayIndex]}_${p + 1}';
+          final isConflict = result.conflicts.containsKey(slot);
+          final isCurrent = p == currentPeriod;
+          final endMin = _periodTimes[p][2] * 60 + _periodTimes[p][3];
+          final isPast = nowMinutes >= endMin;
+          final accentColor = TimetableCell.colorsFor(name, isDark,
+              _subjectColors.containsKey(name) ? Color(_subjectColors[name]! | 0xFF000000) : null).text;
+
+          return Opacity(
+            opacity: isPast && !isCurrent ? 0.55 : 1,
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 5),
+              child: GestureDetector(
+                onTap: isConflict ? () => _resolveConflictSlot(slot, result.conflicts[slot]!) : null,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 9),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).scaffoldBackgroundColor,
+                    borderRadius: BorderRadius.circular(13),
+                    border: Border.all(
+                      color: isConflict ? TimetableCell.conflictColorFor(isDark) : AppColors.theme.lightGreyColor,
+                      width: isConflict || isCurrent ? 1.5 : 1,
+                    ),
+                    boxShadow: isCurrent ? [BoxShadow(color: AppColors.theme.primaryColor.withAlpha(40), blurRadius: 8, offset: const Offset(0, 2))] : null,
+                  ),
+                  child: Row(children: [
+                    SizedBox(width: 22, child: Text('${p + 1}', textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: Responsive.sp(context, 11), fontWeight: FontWeight.w700, color: AppColors.theme.darkGreyColor))),
+                    const SizedBox(width: 8),
+                    Container(width: 3, height: 26, decoration: BoxDecoration(color: accentColor, borderRadius: BorderRadius.circular(2))),
+                    const SizedBox(width: 9),
+                    Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Text(name, style: TextStyle(fontSize: Responsive.sp(context, 13.5), fontWeight: FontWeight.w700,
+                        color: Theme.of(context).textTheme.bodyLarge?.color)),
+                      if (isConflict)
+                        Text(l10n.timetable_conflictHint, style: TextStyle(fontSize: Responsive.sp(context, 10.5), fontWeight: FontWeight.w600,
+                          color: TimetableCell.conflictColorFor(isDark)))
+                      else
+                        Text('${_formatClock(_periodTimes[p][0], _periodTimes[p][1])} - ${_formatClock(_periodTimes[p][2], _periodTimes[p][3])}',
+                          style: TextStyle(fontSize: Responsive.sp(context, 10.5), color: AppColors.theme.mealTypeTextColor)),
+                    ])),
+                    if (isCurrent)
+                      Container(padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+                        decoration: BoxDecoration(color: AppColors.theme.primaryColor, borderRadius: BorderRadius.circular(7)),
+                        child: Text(l10n.timetable_current, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.white)))
+                    else if (isConflict)
+                      Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                        decoration: BoxDecoration(color: TimetableCell.conflictColorFor(isDark).withAlpha(40), borderRadius: BorderRadius.circular(7)),
+                        child: Text(l10n.timetable_conflictBadge, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: TimetableCell.conflictColorFor(isDark)))),
+                  ]),
+                ),
+              ),
+            ),
+          );
+        }),
+      const SizedBox(height: 16),
+      Text(l10n.timetable_thisWeek, style: TextStyle(fontSize: Responsive.sp(context, 11), fontWeight: FontWeight.w700, color: AppColors.theme.darkGreyColor)),
+      const SizedBox(height: 9),
+      Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Theme.of(context).scaffoldBackgroundColor,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.theme.lightGreyColor),
+        ),
+        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: List.generate(5, (day) {
+          return Expanded(child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 3),
+            child: Column(children: [
+              Text(days[day], style: TextStyle(fontSize: Responsive.sp(context, 10), fontWeight: FontWeight.w600, color: AppColors.theme.darkGreyColor)),
+              const SizedBox(height: 4),
+              ...List.generate(maxPeriod, (p) {
+                final name = result.grid[day][p];
+                final barColor = name.isEmpty
+                    ? AppColors.theme.lightGreyColor
+                    : TimetableCell.colorsFor(name, isDark, _subjectColors.containsKey(name) ? Color(_subjectColors[name]! | 0xFF000000) : null).bg;
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 3),
+                  child: Container(height: 8, decoration: BoxDecoration(color: barColor, borderRadius: BorderRadius.circular(3))),
+                );
+              }),
+            ]),
+          ));
+        })),
+      ),
+    ]);
   }
 
   Future<void> _syncGradeToFirestore(int g, int c) async {
