@@ -6,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hansol_high_school/data/auth_service.dart';
 import 'package:hansol_high_school/data/setting_data.dart';
 import 'package:hansol_high_school/l10n/app_localizations.dart';
+import 'package:hansol_high_school/screens/auth/account_info_screen.dart';
 import 'package:hansol_high_school/screens/auth/login_screen.dart';
 import 'package:hansol_high_school/screens/auth/profile_edit_screen.dart';
 import 'package:hansol_high_school/screens/sub/community_rules_screen.dart';
@@ -508,6 +509,17 @@ class _SettingScreenState extends State<SettingScreen> {
                   trailing: Icon(Icons.chevron_right, color: AppColors.theme.darkGreyColor),
                   onTap: () async {
                     await Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileEditScreen()));
+                    if (mounted) setState(() {});
+                  },
+                ),
+                _buildDivider(),
+                ListTile(
+                  leading: Icon(Icons.link, size: Responsive.r(context, 20), color: AppColors.theme.primaryColor),
+                  title: Text(AppLocalizations.of(context)!.settings_connectedAccounts, style: TextStyle(fontSize: Responsive.sp(context, 15), fontWeight: FontWeight.w500,
+                    color: Theme.of(context).textTheme.bodyLarge?.color)),
+                  trailing: Icon(Icons.chevron_right, color: AppColors.theme.darkGreyColor),
+                  onTap: () async {
+                    await Navigator.push(context, MaterialPageRoute(builder: (_) => const AccountInfoScreen()));
                     if (mounted) setState(() {});
                   },
                 ),

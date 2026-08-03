@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:math' as math;
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:crypto/crypto.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
@@ -31,6 +32,7 @@ class UserProfile {
   final String? profilePhotoUrl;
   final String verificationStatus;
   final String? suspendReason;
+  final String? linkedKakaoId;
 
   UserProfile({
     required this.uid,
@@ -51,6 +53,7 @@ class UserProfile {
     this.profilePhotoUrl,
     this.verificationStatus = 'verified',
     this.suspendReason,
+    this.linkedKakaoId,
   });
 
   bool get isManager => role == 'manager' || role == 'admin';
@@ -128,6 +131,7 @@ class UserProfile {
     if (profilePhotoUrl != null) 'profilePhotoUrl': profilePhotoUrl,
     'verificationStatus': verificationStatus,
     if (suspendReason != null) 'suspendReason': suspendReason,
+    if (linkedKakaoId != null) 'linkedKakaoId': linkedKakaoId,
     'updatedAt': FieldValue.serverTimestamp(),
   };
 
@@ -150,8 +154,26 @@ class UserProfile {
     profilePhotoUrl: map['profilePhotoUrl'],
     verificationStatus: map['verificationStatus'] ?? 'verified',
     suspendReason: map['suspendReason'],
+    linkedKakaoId: map['linkedKakaoId'],
   );
 }
+
+/// Thrown when a sign-in attempt hits Firebase's duplicate-email protection.
+/// [pendingCredential]/[email] are null when Firebase's Email Enumeration
+/// Protection is enabled (project setting) — in that case the caller can
+/// only show a generic message, not offer an auto-link button.
+class AccountLinkingRequired implements Exception {
+  final AuthCredential? pendingCredential;
+  final String? email;
+  final List<String> existingProviders;
+  AccountLinkingRequired({
+    required this.pendingCredential,
+    required this.email,
+    required this.existingProviders,
+  });
+}
+
+enum LinkResult { success, alreadyInUse, cancelled, failed }
 
 class AuthService {
   static final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -178,6 +200,12 @@ class AuthService {
         unawaited(AnalyticsService.setUserId(result.user!.uid));
       }
       return result.user;
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'account-exists-with-different-credential') {
+        throw await _accountLinkingRequired(e);
+      }
+      log('AuthService: Google sign in error: $e');
+      return null;
     } catch (e) {
       log('AuthService: Google sign in error: $e');
       return null;
@@ -215,6 +243,12 @@ class AuthService {
         unawaited(AnalyticsService.setUserId(result.user!.uid));
       }
       return result.user;
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'account-exists-with-different-credential') {
+        throw await _accountLinkingRequired(e);
+      }
+      log('AuthService: Apple sign in error: $e');
+      return null;
     } catch (e) {
       log('AuthService: Apple sign in error: $e');
       return null;
@@ -247,6 +281,25 @@ class AuthService {
     }
   }
 
+  /// Links a Kakao account to the currently signed-in user (Google/Apple/
+  /// GitHub/etc). Unlike those providers, Kakao sign-in mints its own
+  /// Firebase custom token rather than an [AuthCredential], so it can't go
+  /// through [linkPendingCredential] — this calls a dedicated cloud function
+  /// instead that records the link without switching the active session.
+  static Future<bool> linkKakaoAccount(String kakaoAccessToken) async {
+    try {
+      final callable = FirebaseFunctions.instance.httpsCallable('linkKakaoAccount');
+      await callable.call({'token': kakaoAccessToken});
+      return true;
+    } on FirebaseFunctionsException catch (e) {
+      log('AuthService: linkKakaoAccount error: ${e.code} ${e.message}');
+      return false;
+    } catch (e) {
+      log('AuthService: linkKakaoAccount error: $e');
+      return false;
+    }
+  }
+
   static Future<User?> signInWithGitHub() async {
     try {
       final githubProvider = GithubAuthProvider();
@@ -256,8 +309,117 @@ class AuthService {
         unawaited(AnalyticsService.setUserId(result.user!.uid));
       }
       return result.user;
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'account-exists-with-different-credential') {
+        throw await _accountLinkingRequired(e);
+      }
+      log('AuthService: GitHub sign in error: $e');
+      return null;
     } catch (e) {
       log('AuthService: GitHub sign in error: $e');
+      return null;
+    }
+  }
+
+  // ── Linking additional providers onto the currently signed-in account ──
+  // (used from account settings, not the login screen — these link onto
+  // `_auth.currentUser` instead of switching to a new session)
+
+  static LinkResult _mapLinkError(FirebaseAuthException e, String label) {
+    if (e.code == 'credential-already-in-use' || e.code == 'email-already-in-use') {
+      return LinkResult.alreadyInUse;
+    }
+    log('AuthService: link$label error: $e');
+    return LinkResult.failed;
+  }
+
+  static Future<LinkResult> linkGoogle() async {
+    final user = _auth.currentUser;
+    if (user == null) return LinkResult.failed;
+    try {
+      final googleUser = await _googleSignIn.signIn();
+      if (googleUser == null) return LinkResult.cancelled;
+      final googleAuth = await googleUser.authentication;
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+      await user.linkWithCredential(credential);
+      return LinkResult.success;
+    } on FirebaseAuthException catch (e) {
+      return _mapLinkError(e, 'Google');
+    } catch (e) {
+      log('AuthService: linkGoogle error: $e');
+      return LinkResult.failed;
+    }
+  }
+
+  static Future<LinkResult> linkApple() async {
+    final user = _auth.currentUser;
+    if (user == null) return LinkResult.failed;
+    try {
+      final rawNonce = _generateNonce();
+      final nonce = _sha256ofString(rawNonce);
+      final appleCredential = await SignInWithApple.getAppleIDCredential(
+        scopes: [AppleIDAuthorizationScopes.email, AppleIDAuthorizationScopes.fullName],
+        nonce: nonce,
+      );
+      final oauthCredential = OAuthProvider('apple.com').credential(
+        idToken: appleCredential.identityToken,
+        rawNonce: rawNonce,
+      );
+      await user.linkWithCredential(oauthCredential);
+      return LinkResult.success;
+    } on FirebaseAuthException catch (e) {
+      return _mapLinkError(e, 'Apple');
+    } catch (e) {
+      log('AuthService: linkApple error: $e');
+      return LinkResult.failed;
+    }
+  }
+
+  static Future<LinkResult> linkGitHub() async {
+    final user = _auth.currentUser;
+    if (user == null) return LinkResult.failed;
+    try {
+      await user.linkWithProvider(GithubAuthProvider());
+      return LinkResult.success;
+    } on FirebaseAuthException catch (e) {
+      return _mapLinkError(e, 'GitHub');
+    } catch (e) {
+      log('AuthService: linkGitHub error: $e');
+      return LinkResult.failed;
+    }
+  }
+
+  static Future<AccountLinkingRequired> _accountLinkingRequired(FirebaseAuthException e) async {
+    final email = e.email;
+    List<String> existingProviders = [];
+    if (email != null) {
+      try {
+        existingProviders = await _auth.fetchSignInMethodsForEmail(email);
+      } catch (err) {
+        log('AuthService: fetchSignInMethodsForEmail error: $err');
+      }
+    }
+    return AccountLinkingRequired(
+      pendingCredential: e.credential,
+      email: email,
+      existingProviders: existingProviders,
+    );
+  }
+
+  /// Links a credential that was blocked by [AccountLinkingRequired] onto
+  /// whichever account the user is currently signed into (after they signed
+  /// in with the existing provider). Call right after that sign-in succeeds.
+  static Future<User?> linkPendingCredential(AuthCredential credential) async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) return null;
+      final result = await user.linkWithCredential(credential);
+      return result.user;
+    } catch (e) {
+      log('AuthService: linkPendingCredential error: $e');
       return null;
     }
   }

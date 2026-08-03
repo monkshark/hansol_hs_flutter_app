@@ -91,10 +91,16 @@ exports.kakaoCustomAuth = onRequest(async (req, res) => {
     if (!kakaoRes.ok) { res.status(401).json({ error: "Invalid kakao token" }); return; }
 
     const kakaoUser = await kakaoRes.json();
-    const uid = `kakao:${kakaoUser.id}`;
+    const kakaoUid = `kakao:${kakaoUser.id}`;
     const email = kakaoUser.kakao_account?.email || null;
     const name = kakaoUser.kakao_account?.profile?.nickname || "카카오 사용자";
     const profileImage = kakaoUser.kakao_account?.profile?.profile_image_url || null;
+
+    // 이 카카오 계정이 이미 다른 로그인수단 계정에 연결돼있으면 그 계정(canonicalUid)으로 로그인.
+    // 처음 보는 카카오 계정이면 kakao:id를 그대로 canonicalUid로 삼고 self-mapping 기록.
+    const linkRef = getFirestore().doc(`identityLinks/${kakaoUid}`);
+    const linkSnap = await linkRef.get();
+    const uid = linkSnap.exists ? linkSnap.data().canonicalUid : kakaoUid;
 
     let firebaseUser;
     try {
@@ -106,6 +112,10 @@ exports.kakaoCustomAuth = onRequest(async (req, res) => {
         ...(email && { email }),
         ...(profileImage && { photoURL: profileImage }),
       });
+    }
+
+    if (!linkSnap.exists) {
+      await linkRef.set({ canonicalUid: uid, linkedAt: new Date() });
     }
 
     // 카카오 프로필 사진이 있고 Firestore에 아직 없으면 저장
@@ -122,6 +132,39 @@ exports.kakaoCustomAuth = onRequest(async (req, res) => {
     await logError("kakaoCustomAuth", error);
     res.status(500).json({ error: error.message });
   }
+});
+
+// 이미 로그인된(구글/애플/깃허브 등) 계정에 카카오 계정을 연결한다.
+// 카카오 로그인은 커스텀토큰 방식이라 linkWithCredential이 안 먹혀서 별도 엔드포인트로 처리.
+exports.linkKakaoAccount = onCall(async (request) => {
+  if (!request.auth) throw new HttpsError("unauthenticated", "로그인이 필요합니다");
+  const canonicalUid = request.auth.uid;
+
+  const parsed = KakaoAuthSchema.safeParse(request.data);
+  if (!parsed.success) throw new HttpsError("invalid-argument", "잘못된 요청입니다");
+  const { token } = parsed.data;
+
+  const kakaoRes = await fetch("https://kapi.kakao.com/v2/user/me", {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!kakaoRes.ok) throw new HttpsError("unauthenticated", "유효하지 않은 카카오 토큰입니다");
+
+  const kakaoUser = await kakaoRes.json();
+  const kakaoUid = `kakao:${kakaoUser.id}`;
+
+  const linkRef = getFirestore().doc(`identityLinks/${kakaoUid}`);
+  const linkSnap = await linkRef.get();
+  if (linkSnap.exists && linkSnap.data().canonicalUid !== canonicalUid) {
+    throw new HttpsError("already-exists", "이미 다른 계정에 연결된 카카오 계정입니다");
+  }
+
+  await linkRef.set({ canonicalUid, linkedAt: new Date() });
+  await getFirestore().doc(`users/${canonicalUid}`).set(
+    { linkedKakaoId: String(kakaoUser.id) },
+    { merge: true },
+  );
+
+  return { ok: true };
 });
 
 async function sendPush(token, title, body, data = {}) {
