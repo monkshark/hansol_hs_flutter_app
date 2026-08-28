@@ -66,6 +66,29 @@ class AppLocalizationsEn extends AppLocalizations {
       'You must agree to all required items to sign up';
 
   @override
+  String get login_linkTitle => 'This email is already registered';
+
+  @override
+  String login_linkMessage(Object email, Object provider) {
+    return '$email is already signed up with $provider. Sign in with $provider to automatically link this account.';
+  }
+
+  @override
+  String get login_linkMessageUnknown =>
+      'This email is already registered with a different method. Please sign in with whichever method you used originally.';
+
+  @override
+  String login_linkButton(Object provider) {
+    return 'Sign in with $provider and link';
+  }
+
+  @override
+  String get login_linkSuccess => 'Account linked';
+
+  @override
+  String get login_linkFailed => 'Failed to link account';
+
+  @override
   String get verify_required_title => 'Verification required';
 
   @override
@@ -1674,6 +1697,32 @@ class AppLocalizationsEn extends AppLocalizations {
   String get timetable_dayFri => 'Fri';
 
   @override
+  String get timetable_tabToday => 'Today';
+
+  @override
+  String get timetable_tabWeekly => 'Weekly';
+
+  @override
+  String get timetable_inClass => 'In class';
+
+  @override
+  String get timetable_current => 'Now';
+
+  @override
+  String timetable_remainingMin(Object minutes) {
+    return '$minutes min left';
+  }
+
+  @override
+  String get timetable_conflictBadge => 'Conflict';
+
+  @override
+  String get timetable_conflictHint => 'Schedule conflict · tap to choose';
+
+  @override
+  String get timetable_thisWeek => 'This week';
+
+  @override
   String get timetable_selectTitle => 'Set Electives';
 
   @override
@@ -1891,6 +1940,47 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notiSetting_dinner => 'Dinner Notification';
+
+  @override
+  String get notiSetting_academicSection => 'Academic Calendar Notifications';
+
+  @override
+  String get notiSetting_academicDayBefore => 'Day-before alert';
+
+  @override
+  String get notiSetting_academicDayBeforeDesc =>
+      'Notify at 9 PM the day before an academic event';
+
+  @override
+  String get notiSetting_academicDayOf => 'Day-of alert';
+
+  @override
+  String get notiSetting_academicDayOfDesc =>
+      'Notify at 8 AM on the day of an academic event';
+
+  @override
+  String get notiSetting_personalSection => 'My Schedule Notifications';
+
+  @override
+  String get notiSetting_personalOnTime => 'On-time alert';
+
+  @override
+  String get notiSetting_personalOnTimeDesc =>
+      'Notify right when a schedule starts (timed schedules only)';
+
+  @override
+  String get notiSetting_personalTenMinBefore => '10-min-before alert';
+
+  @override
+  String get notiSetting_personalTenMinBeforeDesc =>
+      'Notify 10 minutes before a schedule starts (timed schedules only)';
+
+  @override
+  String get notiSetting_personalDayBefore => 'Day-before alert';
+
+  @override
+  String get notiSetting_personalDayBeforeDesc =>
+      'Notify at 9 PM the day before a schedule';
 
   @override
   String get notiSetting_boardSection => 'Board Notifications';
@@ -2112,6 +2202,35 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_myAccount => 'My Account';
+
+  @override
+  String get settings_connectedAccounts => 'Connected Accounts';
+
+  @override
+  String get account_connectedTitle => 'Connected Accounts';
+
+  @override
+  String get account_connectedDesc =>
+      'Link another sign-in method to access the same account with either one.';
+
+  @override
+  String get account_connected => 'Connected';
+
+  @override
+  String get account_notConnected => 'Not connected';
+
+  @override
+  String get account_connectButton => 'Connect';
+
+  @override
+  String get account_connectSuccess => 'Connected';
+
+  @override
+  String get account_connectFailed => 'Failed to connect';
+
+  @override
+  String get account_connectAlreadyLinked =>
+      'This account is already linked to a different user';
 
   @override
   String get settings_nameDefault => 'No Name';
@@ -2722,6 +2841,60 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noti_schoolName => 'Hansol High School';
+
+  @override
+  String get noti_academicChannelName => 'Academic Calendar Notifications';
+
+  @override
+  String get noti_academicChannelDesc =>
+      'Provides academic calendar notifications.';
+
+  @override
+  String get noti_academicDayOfTitle => '📅 Today\'s Academic Event';
+
+  @override
+  String noti_academicDayOfBody(Object eventName) {
+    return 'Today is $eventName';
+  }
+
+  @override
+  String get noti_academicDayBeforeTitle => '📅 Tomorrow\'s Academic Event';
+
+  @override
+  String noti_academicDayBeforeBody(Object eventName) {
+    return 'Tomorrow is $eventName';
+  }
+
+  @override
+  String get noti_scheduleChannelName => 'My Schedule Notifications';
+
+  @override
+  String get noti_scheduleChannelDesc =>
+      'Provides personal schedule notifications.';
+
+  @override
+  String get noti_scheduleOnTimeTitle => '🗓️ Schedule Starting';
+
+  @override
+  String noti_scheduleOnTimeBody(Object content) {
+    return '$content is starting now';
+  }
+
+  @override
+  String get noti_scheduleTenMinBeforeTitle => '🗓️ Schedule in 10 Minutes';
+
+  @override
+  String noti_scheduleTenMinBeforeBody(Object content) {
+    return '$content starts in 10 minutes';
+  }
+
+  @override
+  String get noti_scheduleDayBeforeTitle => '🗓️ Tomorrow\'s Schedule';
+
+  @override
+  String noti_scheduleDayBeforeBody(Object content) {
+    return 'You have $content tomorrow';
+  }
 
   @override
   String get api_noInternet => 'Connect to the internet to check meal info';

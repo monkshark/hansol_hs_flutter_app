@@ -206,6 +206,42 @@ abstract class AppLocalizations {
   /// **'필수 항목에 모두 동의해야 가입할 수 있습니다'**
   String get login_consentRequired;
 
+  /// No description provided for @login_linkTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'이미 가입된 이메일이에요'**
+  String get login_linkTitle;
+
+  /// No description provided for @login_linkMessage.
+  ///
+  /// In ko, this message translates to:
+  /// **'{email}은(는) 이미 {provider}(으)로 가입되어 있어요. {provider}로 로그인하면 계정이 자동으로 연결돼요.'**
+  String login_linkMessage(Object email, Object provider);
+
+  /// No description provided for @login_linkMessageUnknown.
+  ///
+  /// In ko, this message translates to:
+  /// **'이 이메일은 이미 다른 방법으로 가입되어 있어요. 처음 가입할 때 썼던 방법으로 로그인해주세요.'**
+  String get login_linkMessageUnknown;
+
+  /// No description provided for @login_linkButton.
+  ///
+  /// In ko, this message translates to:
+  /// **'{provider}로 로그인하고 연결하기'**
+  String login_linkButton(Object provider);
+
+  /// No description provided for @login_linkSuccess.
+  ///
+  /// In ko, this message translates to:
+  /// **'계정이 연결됐어요'**
+  String get login_linkSuccess;
+
+  /// No description provided for @login_linkFailed.
+  ///
+  /// In ko, this message translates to:
+  /// **'계정 연결에 실패했어요'**
+  String get login_linkFailed;
+
   /// No description provided for @verify_required_title.
   ///
   /// In ko, this message translates to:
@@ -3122,6 +3158,54 @@ abstract class AppLocalizations {
   /// **'금'**
   String get timetable_dayFri;
 
+  /// No description provided for @timetable_tabToday.
+  ///
+  /// In ko, this message translates to:
+  /// **'오늘'**
+  String get timetable_tabToday;
+
+  /// No description provided for @timetable_tabWeekly.
+  ///
+  /// In ko, this message translates to:
+  /// **'주간'**
+  String get timetable_tabWeekly;
+
+  /// No description provided for @timetable_inClass.
+  ///
+  /// In ko, this message translates to:
+  /// **'수업 중'**
+  String get timetable_inClass;
+
+  /// No description provided for @timetable_current.
+  ///
+  /// In ko, this message translates to:
+  /// **'진행 중'**
+  String get timetable_current;
+
+  /// No description provided for @timetable_remainingMin.
+  ///
+  /// In ko, this message translates to:
+  /// **'남은 시간 {minutes}분'**
+  String timetable_remainingMin(Object minutes);
+
+  /// No description provided for @timetable_conflictBadge.
+  ///
+  /// In ko, this message translates to:
+  /// **'중복'**
+  String get timetable_conflictBadge;
+
+  /// No description provided for @timetable_conflictHint.
+  ///
+  /// In ko, this message translates to:
+  /// **'시간표가 겹쳐요 · 탭해서 선택'**
+  String get timetable_conflictHint;
+
+  /// No description provided for @timetable_thisWeek.
+  ///
+  /// In ko, this message translates to:
+  /// **'이번 주'**
+  String get timetable_thisWeek;
+
   /// No description provided for @timetable_selectTitle.
   ///
   /// In ko, this message translates to:
@@ -3511,6 +3595,78 @@ abstract class AppLocalizations {
   /// In ko, this message translates to:
   /// **'석식 알림'**
   String get notiSetting_dinner;
+
+  /// No description provided for @notiSetting_academicSection.
+  ///
+  /// In ko, this message translates to:
+  /// **'학사일정 알림'**
+  String get notiSetting_academicSection;
+
+  /// No description provided for @notiSetting_academicDayBefore.
+  ///
+  /// In ko, this message translates to:
+  /// **'전날 알림'**
+  String get notiSetting_academicDayBefore;
+
+  /// No description provided for @notiSetting_academicDayBeforeDesc.
+  ///
+  /// In ko, this message translates to:
+  /// **'학사일정 하루 전날 저녁 9시에 알림'**
+  String get notiSetting_academicDayBeforeDesc;
+
+  /// No description provided for @notiSetting_academicDayOf.
+  ///
+  /// In ko, this message translates to:
+  /// **'당일 알림'**
+  String get notiSetting_academicDayOf;
+
+  /// No description provided for @notiSetting_academicDayOfDesc.
+  ///
+  /// In ko, this message translates to:
+  /// **'학사일정 당일 아침 8시에 알림'**
+  String get notiSetting_academicDayOfDesc;
+
+  /// No description provided for @notiSetting_personalSection.
+  ///
+  /// In ko, this message translates to:
+  /// **'내 일정 알림'**
+  String get notiSetting_personalSection;
+
+  /// No description provided for @notiSetting_personalOnTime.
+  ///
+  /// In ko, this message translates to:
+  /// **'정시 알림'**
+  String get notiSetting_personalOnTime;
+
+  /// No description provided for @notiSetting_personalOnTimeDesc.
+  ///
+  /// In ko, this message translates to:
+  /// **'일정 시작 시각에 알림 (시간 지정된 일정만)'**
+  String get notiSetting_personalOnTimeDesc;
+
+  /// No description provided for @notiSetting_personalTenMinBefore.
+  ///
+  /// In ko, this message translates to:
+  /// **'10분 전 알림'**
+  String get notiSetting_personalTenMinBefore;
+
+  /// No description provided for @notiSetting_personalTenMinBeforeDesc.
+  ///
+  /// In ko, this message translates to:
+  /// **'일정 시작 10분 전에 알림 (시간 지정된 일정만)'**
+  String get notiSetting_personalTenMinBeforeDesc;
+
+  /// No description provided for @notiSetting_personalDayBefore.
+  ///
+  /// In ko, this message translates to:
+  /// **'전날 알림'**
+  String get notiSetting_personalDayBefore;
+
+  /// No description provided for @notiSetting_personalDayBeforeDesc.
+  ///
+  /// In ko, this message translates to:
+  /// **'일정 하루 전날 저녁 9시에 알림'**
+  String get notiSetting_personalDayBeforeDesc;
 
   /// No description provided for @notiSetting_boardSection.
   ///
@@ -3925,6 +4081,60 @@ abstract class AppLocalizations {
   /// In ko, this message translates to:
   /// **'내 계정'**
   String get settings_myAccount;
+
+  /// No description provided for @settings_connectedAccounts.
+  ///
+  /// In ko, this message translates to:
+  /// **'연결된 계정'**
+  String get settings_connectedAccounts;
+
+  /// No description provided for @account_connectedTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'연결된 계정'**
+  String get account_connectedTitle;
+
+  /// No description provided for @account_connectedDesc.
+  ///
+  /// In ko, this message translates to:
+  /// **'다른 로그인 방법을 연결하면 어느 것으로 로그인해도 같은 계정으로 접속돼요.'**
+  String get account_connectedDesc;
+
+  /// No description provided for @account_connected.
+  ///
+  /// In ko, this message translates to:
+  /// **'연결됨'**
+  String get account_connected;
+
+  /// No description provided for @account_notConnected.
+  ///
+  /// In ko, this message translates to:
+  /// **'연결 안 됨'**
+  String get account_notConnected;
+
+  /// No description provided for @account_connectButton.
+  ///
+  /// In ko, this message translates to:
+  /// **'연결하기'**
+  String get account_connectButton;
+
+  /// No description provided for @account_connectSuccess.
+  ///
+  /// In ko, this message translates to:
+  /// **'연결됐어요'**
+  String get account_connectSuccess;
+
+  /// No description provided for @account_connectFailed.
+  ///
+  /// In ko, this message translates to:
+  /// **'연결에 실패했어요'**
+  String get account_connectFailed;
+
+  /// No description provided for @account_connectAlreadyLinked.
+  ///
+  /// In ko, this message translates to:
+  /// **'이미 다른 계정에 연결된 계정이에요'**
+  String get account_connectAlreadyLinked;
 
   /// No description provided for @settings_nameDefault.
   ///
@@ -4981,6 +5191,90 @@ abstract class AppLocalizations {
   /// In ko, this message translates to:
   /// **'한솔고등학교'**
   String get noti_schoolName;
+
+  /// No description provided for @noti_academicChannelName.
+  ///
+  /// In ko, this message translates to:
+  /// **'학사일정 알림'**
+  String get noti_academicChannelName;
+
+  /// No description provided for @noti_academicChannelDesc.
+  ///
+  /// In ko, this message translates to:
+  /// **'학사일정 알림을 제공합니다.'**
+  String get noti_academicChannelDesc;
+
+  /// No description provided for @noti_academicDayOfTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'📅 오늘의 학사일정'**
+  String get noti_academicDayOfTitle;
+
+  /// No description provided for @noti_academicDayOfBody.
+  ///
+  /// In ko, this message translates to:
+  /// **'오늘은 {eventName}입니다'**
+  String noti_academicDayOfBody(Object eventName);
+
+  /// No description provided for @noti_academicDayBeforeTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'📅 내일의 학사일정'**
+  String get noti_academicDayBeforeTitle;
+
+  /// No description provided for @noti_academicDayBeforeBody.
+  ///
+  /// In ko, this message translates to:
+  /// **'내일은 {eventName}입니다'**
+  String noti_academicDayBeforeBody(Object eventName);
+
+  /// No description provided for @noti_scheduleChannelName.
+  ///
+  /// In ko, this message translates to:
+  /// **'내 일정 알림'**
+  String get noti_scheduleChannelName;
+
+  /// No description provided for @noti_scheduleChannelDesc.
+  ///
+  /// In ko, this message translates to:
+  /// **'개인 일정 알림을 제공합니다.'**
+  String get noti_scheduleChannelDesc;
+
+  /// No description provided for @noti_scheduleOnTimeTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'🗓️ 일정 시작'**
+  String get noti_scheduleOnTimeTitle;
+
+  /// No description provided for @noti_scheduleOnTimeBody.
+  ///
+  /// In ko, this message translates to:
+  /// **'{content} 일정이 시작됩니다'**
+  String noti_scheduleOnTimeBody(Object content);
+
+  /// No description provided for @noti_scheduleTenMinBeforeTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'🗓️ 일정 10분 전'**
+  String get noti_scheduleTenMinBeforeTitle;
+
+  /// No description provided for @noti_scheduleTenMinBeforeBody.
+  ///
+  /// In ko, this message translates to:
+  /// **'{content} 일정이 10분 후 시작됩니다'**
+  String noti_scheduleTenMinBeforeBody(Object content);
+
+  /// No description provided for @noti_scheduleDayBeforeTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'🗓️ 내일의 일정'**
+  String get noti_scheduleDayBeforeTitle;
+
+  /// No description provided for @noti_scheduleDayBeforeBody.
+  ///
+  /// In ko, this message translates to:
+  /// **'내일 {content} 일정이 있습니다'**
+  String noti_scheduleDayBeforeBody(Object content);
 
   /// No description provided for @api_noInternet.
   ///

@@ -12,6 +12,12 @@ import 'package:hansol_high_school/l10n/app_localizations.dart';
 import 'package:hansol_high_school/styles/app_colors.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart' as kakao;
 
+class _LinkableProvider {
+  final String label;
+  final Future<dynamic> Function() signIn;
+  const _LinkableProvider(this.label, this.signIn);
+}
+
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -58,7 +64,15 @@ class _LoginScreenState extends State<LoginScreen> {
     }
     setState(() => _isLoading = true);
 
-    final user = await loginFn();
+    dynamic user;
+    try {
+      user = await loginFn();
+    } on AccountLinkingRequired catch (e) {
+      setState(() => _isLoading = false);
+      if (!mounted) return;
+      await _handleAccountLinking(e);
+      return;
+    }
 
     if (!mounted) return;
     setState(() => _isLoading = false);
@@ -103,6 +117,78 @@ class _LoginScreenState extends State<LoginScreen> {
         Navigator.of(context).pop(true);
       }
     }
+  }
+
+  _LinkableProvider? _matchProvider(List<String> providerIds) {
+    for (final id in providerIds) {
+      switch (id) {
+        case 'google.com':
+          return _LinkableProvider('Google', AuthService.signInWithGoogle);
+        case 'apple.com':
+          return _LinkableProvider('Apple', AuthService.signInWithApple);
+        case 'github.com':
+          return _LinkableProvider('GitHub', AuthService.signInWithGitHub);
+      }
+    }
+    return null;
+  }
+
+  /// Kakao isn't a standard Firebase provider (custom-token auth), so it
+  /// never shows up in [AccountLinkingRequired.existingProviders]. An empty
+  /// list on a real collision is Kakao's signature in this app — it's the
+  /// only non-standard provider — so it's offered as the fallback guess.
+  _LinkableProvider? _resolveLinkTarget(List<String> providerIds) {
+    final match = _matchProvider(providerIds);
+    if (match != null) return match;
+    if (providerIds.isEmpty) {
+      return _LinkableProvider('카카오', _kakaoLogin);
+    }
+    return null;
+  }
+
+  Future<void> _handleAccountLinking(AccountLinkingRequired e) async {
+    final l = AppLocalizations.of(context)!;
+    final match = _resolveLinkTarget(e.existingProviders);
+
+    if (match == null || e.pendingCredential == null) {
+      await showDialog<void>(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: Text(l.login_linkTitle),
+          content: Text(l.login_linkMessageUnknown),
+          actions: [
+            TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(l.login_skipButton)),
+          ],
+        ),
+      );
+      return;
+    }
+
+    final pendingCredential = e.pendingCredential!;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(l.login_linkTitle),
+        content: Text(l.login_linkMessage(e.email ?? '', match.label)),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(l.login_skipButton)),
+          TextButton(onPressed: () => Navigator.of(context).pop(true), child: Text(l.login_linkButton(match.label))),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    await _handleLogin(() async {
+      final linkedInUser = await match.signIn();
+      if (linkedInUser == null) return null;
+      final result = await AuthService.linkPendingCredential(pendingCredential);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(result != null ? l.login_linkSuccess : l.login_linkFailed)),
+        );
+      }
+      return result ?? linkedInUser;
+    });
   }
 
   Future<dynamic> _kakaoLogin() async {
