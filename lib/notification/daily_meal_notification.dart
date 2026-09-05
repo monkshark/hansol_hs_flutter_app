@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:hansol_high_school/api/meal_data_api.dart';
+import 'package:hansol_high_school/data/api_strings.dart';
 import 'package:hansol_high_school/data/setting_data.dart';
 import 'package:hansol_high_school/l10n/app_localizations.dart';
 import 'package:hansol_high_school/main.dart';
@@ -115,19 +116,30 @@ class DailyMealNotification {
     required List<int> weekdays,
   }) async {
     final mealType = id == 1 ? MealDataApi.BREAKFAST : id == 2 ? MealDataApi.LUNCH : MealDataApi.DINNER;
-    String menuPreview = '';
-    try {
-      final meal = await MealDataApi.getMeal(date: DateTime.now(), mealType: mealType, type: MealDataApi.MENU);
-      menuPreview = _cleanMenu(meal?.meal);
-    } catch (e) {
-      log('DailyMealNotification: getMeal error: $e');
-    }
-
-    final body = menuPreview.isNotEmpty ? menuPreview : l.noti_mealConfirm(mealLabel);
 
     for (int weekday in weekdays) {
       final scheduledDate = _nextInstanceOfWeekday(time, weekday);
       final notificationId = id * 10 + weekday;
+
+      String menuPreview = '';
+      bool isConfirmedNoMeal = false;
+      try {
+        final meal = await MealDataApi.getMeal(date: scheduledDate, mealType: mealType, type: MealDataApi.MENU);
+        final rawMenu = meal?.meal;
+        if (rawMenu == ApiStrings.mealNoData || rawMenu == ApiStrings.mealNoDataLegacy) {
+          isConfirmedNoMeal = true;
+        } else if (rawMenu != null && rawMenu != ApiStrings.mealNoInternet) {
+          menuPreview = _cleanMenu(rawMenu);
+        }
+      } catch (e) {
+        log('DailyMealNotification: getMeal error for weekday $weekday: $e');
+      }
+
+      if (isConfirmedNoMeal) {
+        continue;
+      }
+
+      final body = menuPreview.isNotEmpty ? menuPreview : l.noti_mealConfirm(mealLabel);
 
       final androidDetails = AndroidNotificationDetails(
         'daily_meal_channel_id',
@@ -202,8 +214,21 @@ class DailyMealNotification {
     await scheduleDailyNotifications();
   }
 
+  /// meal id 범위(1~3 * 10 + weekday, + 테스트 id 999)만 취소.
+  /// cancelAll()은 다른 알림 카테고리(학사일정/개인일정)까지 지우므로 사용하지 않음.
   Future<void> cancelAllNotifications() async {
-    await _localNotificationsPlugin.cancelAll();
+    for (final mealId in [1, 2, 3]) {
+      for (final weekday in [
+        DateTime.monday,
+        DateTime.tuesday,
+        DateTime.wednesday,
+        DateTime.thursday,
+        DateTime.friday,
+      ]) {
+        await _localNotificationsPlugin.cancel(mealId * 10 + weekday);
+      }
+    }
+    await _localNotificationsPlugin.cancel(999);
   }
 
   TimeOfDay _parseTimeOfDay(String timeString) {
